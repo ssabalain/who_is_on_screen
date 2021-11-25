@@ -104,10 +104,10 @@ services:
       ports:
         - '3306:3306'
       environment:
-        MYSQL_USER: 'ssabalain'
+        MYSQL_USER: 'WIOS_User'
         MYSQL_PASSWORD: 'Whoisonscreen!'
         MYSQL_ROOT_PASSWORD: 'Whoisonscreen!'
-        MYSQL_DATABASE: 'test_database'
+        # MYSQL_DATABASE: 'facial_DB'
         MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
       volumes:
         - ./facial_database/sql_data/db:/var/lib/mysql

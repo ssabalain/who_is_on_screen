@@ -75,18 +75,21 @@ def return_actors(director,director_birthYear,movies_from,movies_to,datasets_fol
     return(actor_by_movies)
 
 #%%
+def main():
+    Director= 'Christopher Nolan'
+    Director_birthyear = '1970'
+    Movies_from = '2004'
+    Movies_to = '2021'
+    Datasets_folder = './imbd_datasets/'
 
-Director= 'Christopher Nolan'
-Director_birthyear = '1970'
-Movies_from = '2004'
-Movies_to = '2021'
-Datasets_folder = './imbd_datasets/'
+    actors_df = return_actors(  director=Director,
+                                director_birthYear= Director_birthyear,
+                                movies_from= Movies_from,
+                                movies_to= Movies_to,
+                                datasets_folder= Datasets_folder
+                                )
 
-actors_df = return_actors(  director=Director,
-                            director_birthYear= Director_birthyear,
-                            movies_from= Movies_from,
-                            movies_to= Movies_to,
-                            datasets_folder= Datasets_folder
-                            )
+    actors_df
 
-actors_df
+if __name__ == '__main__':
+    main()

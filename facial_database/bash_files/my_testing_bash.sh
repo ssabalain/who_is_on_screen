@@ -1,2 +1,2 @@
 /usr/local/bin/python -m pip install --upgrade pip
-python /usr/local/python_scripts/testing_sqlconn.py
+python /usr/local/python_scripts/main.py
