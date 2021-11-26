@@ -37,8 +37,4 @@ with DAG(
         task_id= f'bash_executing_task',
         bash_command= bash_file_path
     )
-    # python_test_function = PythonOperator(
-    #     task_id="python_test_func",
-    #     python_callable=mainagain
-    # )
-    dummy_start_task >> bash_task_permissions >>  bash_task #>>insert_records_in_table
+    dummy_start_task >> bash_task_permissions >>  bash_task

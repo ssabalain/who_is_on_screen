@@ -2,7 +2,7 @@
 
 function stop {
   echo "Stopping and removing containers"
-  docker-compose --project-name wios down
+  docker-compose --project-name wios down -v
 }
 
 function cleanup {

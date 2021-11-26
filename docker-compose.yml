@@ -104,13 +104,24 @@ services:
       ports:
         - '3306:3306'
       environment:
-        MYSQL_USER: 'WIOS_User'
-        MYSQL_PASSWORD: 'Whoisonscreen!'
-        MYSQL_ROOT_PASSWORD: 'Whoisonscreen!'
-        # MYSQL_DATABASE: 'facial_DB'
+        MYSQL_ROOT_PASSWORD: Whoisonscreen_Root!
+        MYSQL_USER: WIOS_User
+        MYSQL_PASSWORD: Whoisonscreen!
+        MYSQL_DATABASE: facial_db
         MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
       volumes:
         - ./facial_database/sql_data/db:/var/lib/mysql
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin:5.0.1
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: WIOS_User
+      PMA_PASSWORD: Whoisonscreen!
+    ports:
+      - "8080:80"
 
   postgres-airflow:
     container_name: postgres-airflow
