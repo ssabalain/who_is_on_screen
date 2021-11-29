@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<title>ITBA Data Science specialization final project - "Who is on screen?"</title>
+
+<xmp theme="cyborg" style="display:none;">
+
+# Who is on screen?
+
+## About the project & documentation
+"Who is on screen?" idea was born while watching several amounts of series and movies during the COVID-19 pandemic. 
+
+Questions like "Where have I seen this guy before?" or "Is this actress the same as the one we saw on that other movie?" started to arise 
+more frequently, and I noticed that the traditional way of getting the answers was Googling the movie (with spoiler risk) and scrolling down
+into long wikipedia articles,just to find an answer only in some cases.
+
+But, what if it was possible to just type the movie name and the minute at where you are standing (which you are going to get while pausing the
+show anyway) and have a list of all the actors being displayed at that specific moment? And maybe also show other works performed by those actors,
+most recognized films, etc. That would be great, huh?
+
+Well, there are two ways of doing that:
+
+  1)  Hiring an army of cinephiles, tie them to a computer, make them watch countless movies and write down each actor that appears at a specic time,
+      as well as when they are not being displayed anymore, or... 
+
+  2)  Train a facial recognition model with actor's faces, and make it analyze movies, detect actors and register the moments they appear in a
+      database.
+      
+For budgeting (and humanitary) reasons, I've decided to move on with the second option.
+
+The main goal behind this project was to build a scalable solution that could easily adapt to different infrastructures, from a local enviroment up to 
+a cloud deployment. For that reason, everything has been built up as a Docker solution. All files and documentation can be found in this [Github repo](https://github.com/ssabalain/who_is_on_screen)
+
+## Services
+Below you will found a list of the services used for the project:
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Access</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Airflow</td>
+      <td>
+        <a href="/" onclick="javascript:event.target.port=9090" target="_blank">Airflow console</a>
+      </td>
+      <td> Used for orchestrating and/or on-demand execute processes </td>
+    </tr>
+    <tr>
+      <td>MySQL Database</td>
+      <td><a href="/" onclick="javascript:event.target.port=8080" target="_blank">phpMyAdmin menu</a></td>
+      <td>Database used to store training datasets, models information and final results</td>
+    </tr>
+  </tbody>
+</table>
+
+---
+## About
+Santiago Sabalain <br>
+[LinkedIn](https://www.linkedin.com/in/santiago-sabalain/) | [GitHub](https://github.com/ssabalain)
+</xmp>
+
+<script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
+</html>
