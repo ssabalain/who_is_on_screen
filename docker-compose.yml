@@ -152,9 +152,7 @@ services:
       - "9090:9090"
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
-      - ./facial_database/python_scripts:/usr/local/python_scripts
-      - ./facial_database/bash_files:/usr/local/bash_files
-
+      - ./facial_database:/usr/local/facial_database
 volumes:
   postgres-airflow-data:
 
