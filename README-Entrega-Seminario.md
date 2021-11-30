@@ -55,9 +55,7 @@ A continuacion se encuentran los pasos necesarios para la correcta instalación 
 
 Ya con todo instalado, inicializamos el ambiente utilizando el siguiente comando:
 
-    ```shell
     ./control-env.sh start
-    ```
 
 El archivo ShellScript "[contron-env.sh](control-env.sh)" nos permitirá operar nuestro ambiente de manera sencilla, desde su inicializacion a su posterior apagado.
 
