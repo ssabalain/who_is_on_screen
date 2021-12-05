@@ -1,9 +1,11 @@
 from pathlib import Path
 from datetime import datetime
 from airflow.models import DAG
-# from airflow.operators.docker_operator import DockerOperator
-from airflow.providers.docker.operators.docker import DockerOperator
-# from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+from airflow.operators.docker_operator import DockerOperator
+# from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+# from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.dummy_operator import DummyOperator
 
 STORE_DIR = Path(__file__).resolve().parent
@@ -18,15 +20,18 @@ with DAG(
     dummy_start_task = DummyOperator(
         task_id=f'dummy_start'
     )
-    # spark_job = DockerOperator(
+    # docker_job = DockerOperator(
     #     task_id='spark_job',
     #     image='arjones/pyspark:2.4.5',
-    #     api_version='auto',
+    #     # api_version='auto',
     #     auto_remove=True,
     #     environment={'MASTER': "spark://master:7077", 'SPARK_NO_DAEMONIZE': "1",'PYSPARK_PYTHON': "python3", 'SPARK_HOME': "/facial_database/python_scripts"},
     #     volumes=['./facial_database:/facial_database'],
-    #     command='python testing_spark.py',
-    #     docker_url='unix://var/run/docker.sock',
+    #     command=[
+    #         "/opt/spark/sbin/start-master.sh"
+    #         "python /facial_database/python_scripts/testing_spark.py",        
+    #     ],
+    #     # docker_url='unix://var/run/docker.sock',
     #     network_mode='bridge'
     # )
-    dummy_start_task #>> spark_job
+    dummy_start_task# >> docker_job

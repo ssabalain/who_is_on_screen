@@ -2,12 +2,17 @@
 
 function stop {
   echo "Stopping and removing containers"
-  docker-compose --project-name wios down -v
+  docker-compose --project-name wios down
 }
 
 function cleanup {
-  echo "Removing volume"
-  docker volume rm wios_postgres-airflow-data
+  echo "Removing everything"
+  docker-compose --project-name wios down --volumes --rmi all
+}
+
+function initial_setup {
+  echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" > .env
+  docker-compose --project-name wios up airflow-init
 }
 
 function start {
@@ -34,6 +39,11 @@ case $1 in
   info
     ;;
 
+  initial_setup )
+  initial_setup
+  info
+    ;;
+
   stop )
   stop
     ;;
@@ -52,7 +62,7 @@ case $1 in
     ;;
 
   * )
-  printf "ERROR: Missing command\n  Usage: `basename $0` (start|stop|cleanup|logs|update)\n"
+  printf "ERROR: Missing command\n  Usage: `basename $0` (start|initial_setup|stop|cleanup|logs|update)\n"
   exit 1
     ;;
 esac
