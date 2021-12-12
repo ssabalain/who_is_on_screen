@@ -102,6 +102,8 @@ services:
       - "6066"
       - "7077"
       - 8081:8080
+    volumes:
+      - ./facial_database:/facial_database
 
   worker2:
     container_name: worker2
@@ -118,6 +120,8 @@ services:
       - "6066"
       - "7077"
       - 8082:8080
+    volumes:
+      - ./facial_database:/facial_database
 
   worker3:
     container_name: worker3
@@ -134,6 +138,8 @@ services:
       - "6066"
       - "7077"
       - 8083:8080
+    volumes:
+      - ./facial_database:/facial_database
 
   worker4:
     container_name: worker4
@@ -150,6 +156,22 @@ services:
       - "6066"
       - "7077"
       - 8084:8080
+    volumes:
+      - ./facial_database:/facial_database
+
+  jupyter:
+    container_name: jupyter
+    image: arjones/pyspark:2.4.5
+    restart: always
+    environment:
+      MASTER: spark://master:7077
+    depends_on:
+      - master
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./facial_database/jupyter_notebooks:/notebook/
+      - ./facial_database/datasets:/dataset
 
   mysql:
       container_name: mysql
@@ -179,6 +201,7 @@ services:
       - "8079:80"
 
   postgres:
+    container_name: airflow-postgres
     image: postgres:13
     environment:
       POSTGRES_USER: airflow
@@ -193,6 +216,7 @@ services:
     restart: always
 
   redis:
+    container_name: redis
     image: redis:latest
     ports:
       - 6379:6379
@@ -205,6 +229,7 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
+    container_name: airflow-webserver
     command: webserver
     ports:
       - 9090:8080
@@ -217,16 +242,19 @@ services:
 
   airflow-scheduler:
     <<: *airflow-common
+    container_name: airflow-scheduler
     command: scheduler
     restart: always
 
   airflow-worker:
     <<: *airflow-common
+    container_name: airflow-worker
     command: celery worker
     restart: always
 
   airflow-init:
     <<: *airflow-common
+    container_name: airflow-init
     command: version
     environment:
       <<: *airflow-common-env
@@ -237,6 +265,7 @@ services:
 
   flower:
     <<: *airflow-common
+    container_name: flower
     command: celery flower
     ports:
       - 5555:5555
@@ -251,3 +280,6 @@ volumes:
   postgres-db-volume:
   mysql-data:
   airflow-logs:
+
+# networks:
+#   default_net:

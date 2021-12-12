@@ -50,7 +50,7 @@ Below you will found a list of the services used for the project:
         <a href="/" onclick="javascript:event.target.port=5555" target="_blank">Flower monitor</a>
       </td>
       <td>
-        Used for orchestrating and/or on-demand execute processes 
+        Used for orchestrating and/or on-demand execute processes. User & pwd: airflow
         <br/><br/>
         Tool to monitoring and administrating Celery clusters
       </td>
@@ -64,13 +64,18 @@ Below you will found a list of the services used for the project:
       <td>Spark</td>
       <td>
         <a href="/" onclick="javascript:event.target.port=8080" target="_blank">Spark Master</a>
-        <br/><br/>
-        <a href="/" onclick="javascript:event.target.port=4040" target="_blank">Job Progress</a>
       </td>
       <td>
         Spark monitor for checking worker's health and application's history
-        <br/><br/>
-        Job Progress can only be accesed when a job is running
+      </td>
+    </tr>
+    <tr>
+      <td>Jupyter</td>
+      <td>
+        <a href="/" onclick="javascript:event.target.port=8888" target="_blank">Jupyter notebooks</a>
+      </td>
+      <td>
+        Jupyter notebooks interactive module. In order to access, a token must be provided (exec "control-env.sh token")
       </td>
     </tr>
   </tbody>

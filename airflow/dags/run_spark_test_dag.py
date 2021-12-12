@@ -4,7 +4,7 @@ from airflow.models import DAG
 from airflow.operators.docker_operator import DockerOperator
 # from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.operators.python_operator import PythonOperator
-from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+# from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 # from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.dummy_operator import DummyOperator
 
