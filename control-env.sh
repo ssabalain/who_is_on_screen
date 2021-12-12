@@ -11,8 +11,11 @@ function cleanup {
 }
 
 function initial_setup {
-  echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" > .env
-  docker-compose --project-name wios up airflow-init
+  cd ./docker-airflow
+  echo "Building docker-airflow-spark image from Dockerfile. If this is running for the first time, it might take up to 10 min...."
+  docker build --rm --force-rm -t docker-airflow-spark:1.10.7_3.1.2 .
+  cd ..
+  $(start)
 }
 
 function start {
@@ -30,7 +33,7 @@ function update {
 function token {
   echo 'Your TOKEN for Jupyter Notebook is:'
   SERVER=$(docker exec -it jupyter jupyter notebook list)
-  echo "${SERVER}" | grep '/notebook' | sed -E 's/^.*=([a-z0-9]+).*$/\1/'
+  echo "${SERVER}" | grep 'token' | sed -E 's/^.*=([a-z0-9]+).*$/\1/'
 }
 
 function info {
