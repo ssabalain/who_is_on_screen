@@ -5,13 +5,24 @@ from pyspark.sql import SparkSession
 ##########################
 # You can configure master here if you do not pass the spark.master paramenter in conf
 ##########################
-#master = "spark://spark:7077"
-#conf = SparkConf().setAppName("Spark Hello World").setMaster(master)
-#sc = SparkContext(conf=conf)
-#spark = SparkSession.builder.config(conf=conf).getOrCreate()
+master = "spark://spark:7077"
+app_name = "Spark Hello World"
+spark = (
+    SparkSession.builder
+    .appName(app_name)
+    .master(master)
+    .config("spark.driver.memory", "512m")
+    .config("spark.driver.cores", "1")
+    .config("spark.executor.memory", "2g")
+    .config("spark.executor.cores", "2")
+    .config("spark.sql.shuffle.partitions", "2")
+    .getOrCreate()
+)
 
 # Create spark context
-sc = SparkContext()
+# sc = SparkContext()
+sc = spark.sparkContext
+sc.setLogLevel("WARN")
 
 # Get the second argument passed to spark-submit (the first is the python app)
 logFile = sys.argv[1]

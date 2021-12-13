@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import sys
 sys.path.append('/usr/local/facial_database/python_scripts/')
@@ -12,13 +12,23 @@ import initial_database_setup as db
 bash_file_path = "/usr/local/facial_database/bash_files/update_pip.sh " #VERY IMPORTANT TO ADD A FINAL SPACE AFTER .sh. ALSO, TAKE A LOOK AT THE PERMISSIONS!!!
 bash_access = "chmod a+x "
 
-dag_args = {'owner': 'Santiago', 'retries': 0, 'start_date': datetime(2021, 10, 10)}
+
+now = datetime.now()
+dag_args = {
+    "owner": "Santiago",
+    "depends_on_past": False,
+    "start_date": datetime(now.year, now.month, now.day),
+    "email": ["airflow@airflow.com"],
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=1)
+}
 
 with DAG(   
     "download_imdb_datasets_DAG",
     default_args=dag_args,
-    schedule_interval = '@Daily',
-    catchup = False
+    schedule_interval = timedelta(1)
 ) as dag:
     dummy_start_task = DummyOperator(
         task_id=f'dummy_start'
