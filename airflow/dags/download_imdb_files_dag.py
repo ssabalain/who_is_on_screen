@@ -14,21 +14,13 @@ bash_access = "chmod a+x "
 
 
 now = datetime.now()
-dag_args = {
-    "owner": "Santiago",
-    "depends_on_past": False,
-    "start_date": datetime(now.year, now.month, now.day),
-    "email": ["airflow@airflow.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=1)
-}
+dag_args = {'owner': 'Santiago', 'retries': 0, 'start_date': datetime(2021, 10, 10)}
 
 with DAG(   
     "download_imdb_datasets_DAG",
     default_args=dag_args,
-    schedule_interval = timedelta(1)
+    schedule_interval = '@once',
+    catchup = False
 ) as dag:
     dummy_start_task = DummyOperator(
         task_id=f'dummy_start'

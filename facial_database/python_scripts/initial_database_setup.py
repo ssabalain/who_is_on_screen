@@ -4,6 +4,7 @@ root_facialdb_folder = "/usr/local/facial_database/"
 os.chdir(root_facialdb_folder)
 
 import pandas as pd
+import time
 import database_operations as db
 import download_files as df
 

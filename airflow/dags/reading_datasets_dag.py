@@ -1,6 +1,6 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow import settings
 from airflow.models import Connection
@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 #General
 now = datetime.now()
 connection_name = "spark_connection"
+connection_type = "spark"
 host_name = "spark://spark"
 port_number = 7077
 spark_master = host_name + ":" + str(port_number) #"spark://spark:7077"
@@ -35,6 +36,7 @@ spark_application_path = spark_script_folder + spark_app # Spark application pat
 def creating_conn():
     conn = Connection(
         conn_id = connection_name,
+        conn_type = connection_type,
         host= host_name,
         port= port_number,
         extra= '{"queue": "root.default"}'
@@ -58,22 +60,13 @@ def creating_conn():
 
 id_dag = "reading_imdb_datasets_DAG"
 dag_description = "This DAG runs a simple Pyspark app."
-default_args = {
-    "owner": "ssabalain",
-    "depends_on_past": False,
-    "start_date": datetime(now.year, now.month, now.day),
-    "email": ["ssabalain@gmail.com"],
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=1)
-}
+dag_args = {'owner': 'Santiago', 'retries': 0, 'start_date': datetime(2021, 10, 10)}
 
 with DAG(
     dag_id= id_dag, 
     description= dag_description,
-    default_args=default_args, 
-    schedule_interval=timedelta(1)
+    default_args=dag_args,
+    schedule_interval= '@once'
 ) as dag:
     dummy_start_task = DummyOperator(
         task_id="start"
