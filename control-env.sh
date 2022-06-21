@@ -6,16 +6,19 @@ function stop {
 }
 
 function cleanup {
-  echo "Removing everything"
+  echo "Removing volumes"
   docker-compose --project-name wios down --volumes --rmi all
+  echo "Deleting cache folders"
+  rm -rf ./airflow/dags/__pycache__
+  rm -rf ./facial_database/jupyter_notebooks/.ipynb_checkpoints
+  rm -rf ./facial_database/python_scripts/__pycache__
 }
 
 function initial_setup {
   cd ./docker-airflow
   echo "Building docker-airflow-spark image from Dockerfile. If this is running for the first time, it might take up to 10 min...."
-  docker build --rm --force-rm -t docker-airflow-spark:1.10.7_3.1.2 .
+  docker build --rm --force-rm --no-cache -t airflow-spark .
   cd ..
-  $(start)
 }
 
 function start {
@@ -26,7 +29,6 @@ function start {
 function update {
   echo "Updating docker images ..."
   docker-compose --project-name wios pull
-
   echo "You probably should restart"
 }
 
@@ -37,9 +39,7 @@ function token {
 }
 
 function info {
-  echo '
-  Everything is ready, access your host to learn more (ie: http://localhost/)
-  '
+  echo 'Everything is ready, access your host to learn more (ie: http://localhost/)'
 }
 
 case $1 in
@@ -50,6 +50,7 @@ case $1 in
 
   initial_setup )
   initial_setup
+  start
   info
     ;;
 
