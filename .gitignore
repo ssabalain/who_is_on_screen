@@ -5,3 +5,6 @@ dags/__pycache__
 part-*
 *_SUCCESS*
 *.pyc
+airflow/logs/
+airflow/plugins/
+facial_database/datasets/
