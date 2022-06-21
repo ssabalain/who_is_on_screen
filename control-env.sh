@@ -14,6 +14,13 @@ function cleanup {
   rm -rf ./facial_database/python_scripts/__pycache__
 }
 
+function hard_cleanup {
+  echo "Deleting log folders"
+  rm -rf ./airflow/logs
+  echo "Deleting datasets"
+  rm -rf ./facial_database/datasets
+}
+
 function initial_setup {
   cd ./docker-airflow
   echo "Building docker-airflow-spark image from Dockerfile. If this is running for the first time, it might take up to 10 min...."
@@ -61,6 +68,12 @@ case $1 in
   cleanup )
   stop
   cleanup
+    ;;
+
+  hard_cleanup )
+  stop
+  cleanup
+  hard_cleanup
     ;;
 
   update )
