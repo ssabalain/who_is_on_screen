@@ -44,8 +44,8 @@ def show_databases(db_user,pwd):
 def create_table(db_user,pwd,database_name,table_name,columns):
     conn,sql_cursor = connect_to_mysql(db_user,pwd,database_name)
     query_cols = " ("
-    for i in range(len(columns)):
-        query_cols = query_cols + columns[i][0] +" " + columns[i][1] + ", "
+    for column in columns:
+        query_cols = query_cols + column['column_name'] +" " + column['sql_data_type'] + ", "
     query_cols = query_cols[:-2] + ")"
     
     query = "CREATE TABLE " + table_name + query_cols
@@ -63,7 +63,7 @@ def return_conn(uri):
     return conn
 
 # Define function using cursor.executemany() to insert the dataframe
-#This methos has a little trouble around managing "Nan" values. In order to use it, the DF must NOT have any NaN values, otherwise it will
+#This method has a little trouble around managing "Nan" values. In order to use it, the DF must NOT have any NaN values, otherwise it will
 #throw an error. For that reason, we are using SQLAlchemy method (toSql). However, it's important to notice that the "ExecuteMany" method
 #has proved to be a faster method than the SQL Alchemy one.
 def insert_df_in_table(conn,cursor, df, table):

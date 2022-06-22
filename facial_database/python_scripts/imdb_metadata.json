@@ -1,0 +1,52 @@
+{
+  "datasets": [
+    {
+      "name": "imdb_crew_by_title",
+      "columns": [
+        { "column_name": "tconst", "sql_data_type": "VARCHAR(15)", "py_data_type": "str" },
+        { "column_name": "directors", "sql_data_type": "TEXT", "py_data_type": "object" },
+        { "column_name": "writers", "sql_data_type": "TEXT", "py_data_type": "object" }
+      ],
+      "file_name": "title.crew.tsv.gz"
+    },
+    {
+      "name": "imdb_peoples",
+      "columns": [
+        { "column_name": "nconst", "sql_data_type": "VARCHAR(15)", "py_data_type": "str" },
+        { "column_name": "primaryName", "sql_data_type": "TEXT", "py_data_type": "str" },
+        { "column_name": "birthYear", "sql_data_type": "VARCHAR(5)", "py_data_type": "str" },
+        { "column_name": "deathYear", "sql_data_type": "VARCHAR(5)", "py_data_type": "str" },
+        { "column_name": "primaryProfession", "sql_data_type": "TEXT", "py_data_type": "object" },
+        { "column_name": "knownForTitles", "sql_data_type": "TEXT", "py_data_type": "object" }
+      ],
+      "file_name": "name.basics.tsv.gz"
+    },
+    {
+      "name": "imdb_titles",
+      "columns": [
+        { "column_name": "tconst", "sql_data_type": "VARCHAR(15)", "py_data_type": "str" },
+        { "column_name": "titleType", "sql_data_type": "VARCHAR(25)", "py_data_type": "str" },
+        { "column_name": "primaryTitle", "sql_data_type": "TEXT", "py_data_type": "str" },
+        { "column_name": "originalTitle", "sql_data_type": "TEXT", "py_data_type": "str" },
+        { "column_name": "isAdult", "sql_data_type": "VARCHAR(5)", "py_data_type": "str" },
+        { "column_name": "startYear", "sql_data_type": "VARCHAR(5)", "py_data_type": "str" },
+        { "column_name": "endYear", "sql_data_type": "VARCHAR(5)", "py_data_type": "str" },
+        { "column_name": "runtimeMinutes", "sql_data_type": "VARCHAR(100)", "py_data_type": "str" },
+        { "column_name": "genres", "sql_data_type": "TEXT", "py_data_type": "object" }
+      ],
+      "file_name": "title.basics.tsv.gz"
+    },
+    {
+      "name": "imdb_actors_by_title",
+      "columns": [
+        { "column_name": "tconst", "sql_data_type": "VARCHAR(15)", "py_data_type": "str" },
+        { "column_name": "ordering", "sql_data_type": "INT", "py_data_type": "int" },
+        { "column_name": "nconst", "sql_data_type": "VARCHAR(15)", "py_data_type": "str" },
+        { "column_name": "category", "sql_data_type": "VARCHAR(25)", "py_data_type": "str" },
+        { "column_name": "job", "sql_data_type": "TEXT", "py_data_type": "str" },
+        { "column_name": "characters", "sql_data_type": "TEXT", "py_data_type": "str" }
+      ],
+      "file_name": "title.principals.tsv.gz"
+    }
+  ]
+}
