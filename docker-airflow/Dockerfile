@@ -64,6 +64,7 @@ RUN pip install -U pip setuptools wheel \
     && pip install -r requirements.txt \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install apache-airflow-providers-apache-spark \
+    && pip install pyspark==${SPARK_VERSION} \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
     && pip freeze
 
@@ -104,9 +105,6 @@ RUN pip freeze && \
 
 USER root
 
-# Setup JAVA_HOME
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
-RUN export JAVA_HOME
 ###############################
 ## Finish JAVA installation
 ###############################
@@ -128,13 +126,14 @@ RUN cd "/tmp" && \
     cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars/" && \
     rm "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
 
-USER airflow
-RUN pip install pyspark
-USER root
-
 # Create SPARK_HOME env var
 RUN export SPARK_HOME
 ENV PATH $PATH:/usr/local/spark/bin
+
+# Setup JAVA_HOME
+ENV JAVA_HOME /usr
+RUN export JAVA_HOME
+
 ###############################
 ## Finish SPARK files and variables
 ###############################
