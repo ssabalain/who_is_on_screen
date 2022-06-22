@@ -24,10 +24,6 @@ spark_task_id = "spark_job"
 spark_script_folder = "/usr/local/spark/app/"
 spark_app = "reading_datasets.py"
 spark_application_path = spark_script_folder + spark_app # Spark application path created in airflow and spark cluster
-#spark_app_name = "Read IMDB Datasets"
-
-#file_path = "/usr/local/spark/resources/data/airflow.cfg"
-
 
 ###############################################
 # Functions
@@ -63,7 +59,7 @@ dag_description = "This DAG runs a simple Pyspark app."
 dag_args = {'owner': 'Santiago', 'retries': 0, 'start_date': datetime(2021, 10, 10)}
 
 with DAG(
-    dag_id= id_dag, 
+    dag_id= id_dag,
     description= dag_description,
     default_args=dag_args,
     schedule_interval= '@once'
