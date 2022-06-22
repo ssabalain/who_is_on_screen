@@ -12,18 +12,18 @@ function cleanup {
   rm -rf ./airflow/dags/__pycache__
   rm -rf ./facial_database/jupyter_notebooks/.ipynb_checkpoints
   rm -rf ./facial_database/python_scripts/__pycache__
+  echo "Deleting log folders"
+  rm -rf ./airflow/logs
 }
 
 function hard_cleanup {
-  echo "Deleting log folders"
-  rm -rf ./airflow/logs
   echo "Deleting datasets"
   rm -rf ./facial_database/datasets
 }
 
 function initial_setup {
   cd ./docker-airflow
-  echo "Building docker-airflow-spark image from Dockerfile. If this is running for the first time, it might take up to 10 min...."
+  echo "Building airflow-spark image from Dockerfile. If this is running for the first time, it might take up to 10 min...."
   docker build --rm --force-rm --no-cache -t airflow-spark .
   cd ..
 }
