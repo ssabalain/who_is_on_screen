@@ -23,6 +23,10 @@ ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
 
+###############################
+## Begin dependencies installation
+###############################
+
 RUN set -ex \
     && buildDeps=' \
         freetds-dev \
@@ -85,7 +89,7 @@ RUN apt-get autoremove -yqq --purge \
 ## Begin JAVA installation
 ###############################
 # Java is required in order to spark-submit work
-# Install OpenJDK-8
+# Install OpenJDK-11
 
 RUN mkdir -p /usr/share/man/man1mkdir -p /usr/share/man/man1 && \
     apt-get update && \
@@ -95,7 +99,6 @@ RUN mkdir -p /usr/share/man/man1mkdir -p /usr/share/man/man1 && \
     add-apt-repository "deb http://security.debian.org/debian-security stretch/updates main" && \
     apt-get update && \
     apt-get install -y openjdk-11-jdk
-    #apt-get install -y ant
 
 USER airflow
 
@@ -104,10 +107,6 @@ RUN pip freeze && \
     javac -version
 
 USER root
-
-###############################
-## Finish JAVA installation
-###############################
 
 ###############################
 ## SPARK files and variables
@@ -134,10 +133,7 @@ ENV PATH $PATH:/usr/local/spark/bin
 ENV JAVA_HOME /usr
 RUN export JAVA_HOME
 
-###############################
-## Finish SPARK files and variables
-###############################
-
+# Final commands
 RUN chown -R airflow: ${AIRFLOW_HOME}
 
 EXPOSE 8080 5555 8793
