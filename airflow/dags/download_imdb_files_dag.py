@@ -16,7 +16,7 @@ bash_access = "chmod a+x "
 now = datetime.now()
 dag_args = {'owner': 'Santiago', 'retries': 0, 'start_date': datetime(2021, 10, 10)}
 
-with DAG(   
+with DAG(
     "download_imdb_datasets_DAG",
     default_args=dag_args,
     schedule_interval = '@once',
