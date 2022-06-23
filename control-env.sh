@@ -59,20 +59,14 @@ function token {
   echo "${SERVER}" | grep 'token' | sed -E 's/^.*=([a-z0-9]+).*$/\1/'
 }
 
-function info {
-  echo 'Everything is ready, access your host to learn more (ie: http://localhost/)'
-}
-
 case $1 in
   start )
   start
-  info
     ;;
 
   initial_setup )
   initial_setup
   start
-  info
     ;;
 
   stop )
