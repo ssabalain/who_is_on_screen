@@ -41,9 +41,9 @@ Esta primera parte del trabajo comienza con la instalación y puesta a punto del
 A continuacion se encuentran los pasos necesarios para la correcta instalación del ambiente:
 
 1. Instalacion de docker:
-  a. Para Windows se recomienda el uso de [WSL2](https://docs.docker.com/desktop/windows/wsl/).
-  b. En caso de contar con OSX, se puede seguir [esta guía](https://stackoverflow.com/questions/40523307/brew-install-docker-does-not-include-docker-engine/43365425#43365425)
-  c. Para Linux, la instalacion será via [manejador de paquetes](https://docs.docker.com/engine/install/ubuntu/)
+  - a. Para Windows se recomienda el uso de [WSL2](https://docs.docker.com/desktop/windows/wsl/).
+  - b. En caso de contar con OSX, se puede seguir [esta guía](https://stackoverflow.com/questions/40523307/brew-install-docker-does-not-include-docker-engine/43365425#43365425)
+  - c. Para Linux, la instalacion será via [manejador de paquetes](https://docs.docker.com/engine/install/ubuntu/)
 
 2. Clonado del repo: Una vez instalado Docker, se debera clonar el repositorio a traves del siguiente comando:
 
