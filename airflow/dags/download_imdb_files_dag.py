@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
@@ -12,15 +12,25 @@ import initial_database_setup as db
 bash_file_path = "/usr/local/facial_database/bash_files/update_pip.sh " #VERY IMPORTANT TO ADD A FINAL SPACE AFTER .sh. ALSO, TAKE A LOOK AT THE PERMISSIONS!!!
 bash_access = "chmod a+x "
 
-
 now = datetime.now()
-dag_args = {'owner': 'Santiago', 'retries': 0, 'start_date': datetime(2021, 10, 10)}
+###############################################
+# DAG Definition
+###############################################
+
+id_dag = "1_1_download_imdb_datasets"
+dag_description = "This DAG downloads the imdb datasets used."
+dag_args = {
+    'owner': 'Santiago',
+    'retries': 0,
+    'catchup': False,
+    'start_date': datetime(2021, 10, 10)
+}
 
 with DAG(
-    "download_imdb_datasets_DAG",
+    dag_id= id_dag,
+    description= dag_description,
     default_args=dag_args,
-    schedule_interval = '@once',
-    catchup = False
+    schedule_interval= '@once'
 ) as dag:
     dummy_start_task = DummyOperator(
         task_id=f'dummy_start'

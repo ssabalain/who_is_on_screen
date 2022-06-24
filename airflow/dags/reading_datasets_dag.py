@@ -54,7 +54,7 @@ def creating_conn():
 # DAG Definition
 ###############################################
 
-id_dag = "reading_imdb_datasets_DAG"
+id_dag = "2___reading_imdb_datasets"
 dag_description = "This DAG runs a simple Pyspark app."
 dag_args = {'owner': 'Santiago', 'retries': 0, 'start_date': datetime(2021, 10, 10)}
 
