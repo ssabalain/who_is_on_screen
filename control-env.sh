@@ -55,8 +55,7 @@ function update {
 
 function token {
   echo 'Your TOKEN for Jupyter Notebook is:'
-  SERVER=$(docker exec -it jupyter jupyter notebook list)
-  echo "${SERVER}" | grep 'token' | sed -E 's/^.*=([a-z0-9]+).*$/\1/'
+  echo $(docker logs jupyter 2>&1 | grep 'lab?token=' | head -1 | sed -E 's/^.*=([a-z0-9]+).*$/\1/')
 }
 
 case $1 in

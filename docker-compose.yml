@@ -195,7 +195,7 @@ services:
       - "18081:18081"
 
   jupyter-spark:
-      image: jupyter/pyspark-notebook:spark-3.1.2
+      image: jupyter/pyspark-notebook:spark-3.2.0
       container_name: jupyter
       networks:
           - default_net
@@ -204,8 +204,6 @@ services:
         - "4040-4080:4040-4080"
       volumes:
         - ./facial_database/jupyter_notebooks:/home/jovyan/work/notebooks/
-        - ./spark/resources/data:/home/jovyan/work/data/
-        - ./spark/resources/jars:/home/jovyan/work/jars/
 
 volumes:
   postgres-db-volume:
