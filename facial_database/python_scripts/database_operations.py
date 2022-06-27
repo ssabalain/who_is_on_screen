@@ -17,6 +17,7 @@ import mysql.connector
 import pandas as pd
 from sqlalchemy import create_engine
 import numpy as np
+import time
 
 def connect_to_mysql(db_user,pwd,database_name = None):
     if database_name == None:
@@ -44,8 +45,8 @@ def show_databases(db_user,pwd):
 def create_table(db_user,pwd,database_name,table_name,columns):
     conn,sql_cursor = connect_to_mysql(db_user,pwd,database_name)
     query_cols = " ("
-    for i in range(len(columns)):
-        query_cols = query_cols + columns[i][0] +" " + columns[i][1] + ", "
+    for column in columns:
+        query_cols = query_cols + column['column_name'] +" " + column['sql_data_type'] + ", "
     query_cols = query_cols[:-2] + ")"
     
     query = "CREATE TABLE " + table_name + query_cols
@@ -62,11 +63,26 @@ def return_conn(uri):
     conn = create_engine(uri, echo=False)
     return conn
 
+def insert_df_in_table(conn,file_path,dtypes,chunk_size,table_name):
+    batch_no = 0
+    starttime = time.time()
+    for chunk in pd.read_csv(file_path,compression='gzip', sep= '\t',dtype= dtypes,chunksize=chunk_size,iterator=True):
+        chunk.to_sql(con = conn, name = table_name, if_exists = 'append',index= False)
+        #Can be done using sqlAlchemy, but it's slower:
+        #db.insert_df_in_table_2(conn,cursor,chunk,table_name)
+        batch_no+=1
+
+        if ((batch_no % 25) == 0 or batch_no == 1):
+            print("Inserting records from batch: " + str(batch_no) + " of table " + table_name + ". Batch size: " + str(chunk_size))
+    
+    endtime = time.time()
+    print("All records for table " + table_name + " were inserted. Overall execution time (secs): " + str(endtime - starttime))
+
 # Define function using cursor.executemany() to insert the dataframe
-#This methos has a little trouble around managing "Nan" values. In order to use it, the DF must NOT have any NaN values, otherwise it will
+#This method has a little trouble around managing "Nan" values. In order to use it, the DF must NOT have any NaN values, otherwise it will
 #throw an error. For that reason, we are using SQLAlchemy method (toSql). However, it's important to notice that the "ExecuteMany" method
 #has proved to be a faster method than the SQL Alchemy one.
-def insert_df_in_table(conn,cursor, df, table):
+def insert_df_in_table_2(conn,cursor, df, table):
     
     # Creating a list of tupples from the dataframe values
     tpls = [tuple(x) for x in df.to_numpy()]
@@ -80,5 +96,3 @@ def insert_df_in_table(conn,cursor, df, table):
     sql = sql_1 + numcols[:-1] + ")"
     cursor.executemany(sql, tpls)
     conn.commit()
-
-

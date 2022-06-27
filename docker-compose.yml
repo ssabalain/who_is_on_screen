@@ -1,74 +1,214 @@
-version: "3"
+version: '3.7'
+
+x-common:
+  &common
+  image: airflow-spark
+  user: "${AIRFLOW_UID}:0"
+  networks:
+    - default_net
+  env_file:
+    - .env
+  volumes:
+    - ./docker-airflow/config/airflow.cfg:/opt/airflow/airflow.cfg
+    - ./airflow/dags:/opt/airflow/dags #DAG folder
+    - ./airflow/logs:/opt/airflow/logs
+    - ./airflow/plugins:/opt/airflow/plugins
+    - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
+    - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+    - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
+    - /var/run/docker.sock:/var/run/docker.sock
+
+x-depends-on:
+  &depends-on
+  depends_on:
+    postgres:
+      condition: service_healthy
+    airflow-init:
+      condition: service_completed_successfully
+
 services:
   docs:
     container_name: docs
+    networks:
+      - default_net
     image: nginx
     ports:
       - "80:80"
     volumes:
       - "./nginx/html:/usr/share/nginx/html:ro"
 
-  redis:
-    container_name: redis
-    image: redis
-    restart: always
-
   mysql:
-      container_name: mysql
-      restart: always
-      image: mysql/mysql-server:latest
-      ports:
-        - '3306:3306'
-      environment:
-        MYSQL_ROOT_PASSWORD: Whoisonscreen_Root!
-        MYSQL_USER: WIOS_User
-        MYSQL_PASSWORD: Whoisonscreen!
-        MYSQL_DATABASE: facial_db
-        MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
-      volumes:
-        - ./facial_database/sql_data/db:/var/lib/mysql
+    container_name: mysql
+    restart: always
+    networks:
+      - default_net
+    image: mysql/mysql-server:latest
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: Whoisonscreen_Root!
+      MYSQL_USER: WIOS_User
+      MYSQL_PASSWORD: Whoisonscreen!
+      MYSQL_DATABASE: facial_db
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    volumes:
+      - mysql-data:/var/lib/mysql
 
   phpmyadmin:
     container_name: phpmyadmin
     image: phpmyadmin/phpmyadmin:5.0.1
+    networks:
+      - default_net
     restart: always
     environment:
       PMA_HOST: mysql
       PMA_USER: WIOS_User
       PMA_PASSWORD: Whoisonscreen!
     ports:
-      - "8080:80"
+      - "8078:80"
 
-  postgres-airflow:
-    container_name: postgres-airflow
-    image: postgres:11
-    restart: always
-    volumes:
-      - postgres-airflow-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: airflow
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
+  postgres:
+    image: postgres:13
+    container_name: airflow-postgres
+    networks:
+      - default_net
     ports:
       - "5434:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    env_file:
+      - .env
 
-  airflow:
-    container_name: airflow
-    image: puckel/docker-airflow
-    restart: always
-    depends_on:
-      - postgres-airflow
-    environment:
-      EXECUTOR: Local
-      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-      AIRFLOW__WEBSERVER__WEB_SERVER_PORT: 9090
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow:5432/airflow
-      AIRFLOW__CORE__FERNET_KEY: "Eff80poJxv6LE4432pDC6OmD6N449KCSuhUAMLXiq4U="
+  scheduler:
+    <<: *common
+    <<: *depends-on
+    container_name: airflow-scheduler
+    command: scheduler
+    restart: on-failure
     ports:
-      - "9090:9090"
-    volumes:
-      - ./airflow/dags:/usr/local/airflow/dags
-      - ./facial_database:/usr/local/facial_database
-volumes:
-  postgres-airflow-data:
+      - "8793:8793"
 
+  webserver:
+    <<: *common
+    <<: *depends-on
+    container_name: airflow-webserver
+    restart: always
+    command: webserver
+    ports:
+      - "8079:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8079/health"]
+      start_period: 30s
+      interval: 30s
+      timeout: 30s
+      retries: 5
+  
+  airflow-init:
+    <<: *common
+    container_name: airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /sources/logs /sources/dags /sources/plugins
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        exec /entrypoint airflow version
+
+  spark-master:
+    image: bde2020/spark-master:3.2.0-hadoop3.2
+    container_name: spark-master
+    hostname: spark
+    networks:
+      - default_net
+    volumes:
+      - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
+      - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+      - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    environment:
+      - INIT_DAEMON_STEP=setup_spark
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+
+  spark-worker-1:
+    image: bde2020/spark-worker:3.2.0-hadoop3.2
+    container_name: spark-worker-1
+    networks:
+      - default_net
+    volumes:
+      - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
+      - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+      - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+
+  spark-worker-2:
+    image: bde2020/spark-worker:3.2.0-hadoop3.2
+    container_name: spark-worker-2
+    networks:
+      - default_net
+    volumes:
+      - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
+      - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+      - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
+    depends_on:
+      - spark-master
+    ports:
+      - "8082:8081"
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+
+  spark-history-server:
+    image: bde2020/spark-history-server:3.2.0-hadoop3.2
+    container_name: spark-history-server
+    networks:
+      - default_net
+    volumes:
+      - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
+      - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
+      - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
+      - /tmp/spark-events-local:/tmp/spark-events
+    depends_on:
+      - spark-master
+    ports:
+      - "18081:18081"
+
+  jupyter-spark:
+      image: jupyter/pyspark-notebook:spark-3.2.0
+      container_name: jupyter
+      networks:
+          - default_net
+      ports:
+        - "8888:8888"
+        - "4040-4080:4040-4080"
+      volumes:
+        - ./facial_database/jupyter_notebooks:/home/jovyan/work/notebooks/
+
+volumes:
+  postgres-db-volume:
+  mysql-data:
+
+networks:
+    default_net:

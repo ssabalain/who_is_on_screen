@@ -45,14 +45,34 @@ Below you will found a list of the services used for the project:
     <tr>
       <td>Airflow</td>
       <td>
-        <a href="/" onclick="javascript:event.target.port=9090" target="_blank">Airflow console</a>
+        <a href="/" onclick="javascript:event.target.port=8079" target="_blank">Airflow console</a>
       </td>
-      <td> Used for orchestrating and/or on-demand execute processes </td>
+      <td>
+        Used for orchestrating and/or on-demand execute processes. User & pwd: airflow
+      </td>
     </tr>
     <tr>
       <td>MySQL Database</td>
-      <td><a href="/" onclick="javascript:event.target.port=8080" target="_blank">phpMyAdmin menu</a></td>
+      <td><a href="/" onclick="javascript:event.target.port=8078" target="_blank">phpMyAdmin menu</a></td>
       <td>Database used to store training datasets, models information and final results</td>
+    </tr>
+    <tr>
+      <td>Spark</td>
+      <td>
+        <a href="/" onclick="javascript:event.target.port=8080" target="_blank">Spark Master</a>
+      </td>
+      <td>
+        Spark monitor for checking worker's health and application's history
+      </td>
+    </tr>
+    <tr>
+      <td>Jupyter</td>
+      <td>
+        <a href="/" onclick="javascript:event.target.port=8888" target="_blank">Jupyter notebooks</a>
+      </td>
+      <td>
+        Jupyter notebooks interactive module. In order to access, a token must be provided (exec "control-env.sh token")
+      </td>
     </tr>
   </tbody>
 </table>

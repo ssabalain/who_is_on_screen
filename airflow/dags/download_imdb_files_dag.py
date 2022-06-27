@@ -2,26 +2,23 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import sys
 sys.path.append('/usr/local/facial_database/python_scripts/')
 
 import initial_database_setup as db
 
-###############################################
-# Parameters
-###############################################
-
 bash_file_path = "/usr/local/facial_database/bash_files/update_pip.sh " #VERY IMPORTANT TO ADD A FINAL SPACE AFTER .sh. ALSO, TAKE A LOOK AT THE PERMISSIONS!!!
 bash_access = "chmod a+x "
 
+now = datetime.now()
 ###############################################
 # DAG Definition
 ###############################################
 
-id_dag = "1_0_initial_database_setup"
-dag_description = "This DAG runs the whole MySQL database setup process"
+id_dag = "1_1_download_imdb_datasets"
+dag_description = "This DAG downloads the imdb datasets used."
 dag_args = {
     'owner': 'Santiago',
     'retries': 0,
@@ -47,7 +44,7 @@ with DAG(
         bash_command= bash_file_path
     )
     python_task = PythonOperator(
-        task_id='db_setup',
-        python_callable= db.main
+        task_id='download_datasets',
+        python_callable= db.download_datasets
     )
     dummy_start_task >> bash_task_permissions >> bash_task >> python_task
