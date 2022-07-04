@@ -151,8 +151,8 @@ services:
       - "8081:8081"
     environment:
       - SPARK_MASTER=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
@@ -173,8 +173,8 @@ services:
       - "8082:8081"
     environment:
       - SPARK_MASTER=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
@@ -205,6 +205,20 @@ services:
         - "4040-4080:4040-4080"
       volumes:
         - ./facial_database/jupyter_notebooks:/home/jovyan/work/notebooks/
+
+  chrome:
+    image: seleniarm/standalone-chromium:latest
+    container_name: chrome
+    hostname: chrome
+    networks:
+      - default_net
+    ports:
+      - "5900:5900"
+      - "4444:4444"
+    privileged: true
+    shm_size: 2g
+    volumes:
+      - ./facial_database:/usr/local/facial_database
 
 volumes:
   postgres-db-volume:
