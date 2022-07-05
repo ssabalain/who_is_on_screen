@@ -1,19 +1,26 @@
 FROM apache/airflow:2.3.0
 LABEL maintainer="ssabalain"
 
+ARG build_date
+
+LABEL org.label-schema.build-date=${build_date}
+LABEL org.label-schema.name="Airflow-Spark image for 'Who is on Screen' project'"
+LABEL org.label-schema.schema-version="1.0"
+
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 USER root
 
 # Airflow
-ARG AIRFLOW_VERSION=2.3.0
+ARG AIRFLOW_VERSION
 ARG AIRFLOW_HOME=/opt/airflow
-ARG PYTHON_VERSION=3.6
+ARG PYTHON_VERSION
 ARG AIRFLOW_DEPS=""
 ARG PYTHON_DEPS=""
-ARG SPARK_VERSION="3.2.0"
-ARG HADOOP_VERSION="3.2"
+ARG SCALA_VERSION
+ARG SPARK_VERSION
+ARG HADOOP_VERSION
 ENV AIRFLOW_GPL_UNIDECODE yes
 
 # Define en_US.
@@ -57,7 +64,7 @@ RUN set -ex \
 
 USER airflow
 
-COPY requirements.txt /requirements.txt
+COPY ./docker/airflow/requirements.txt /requirements.txt
 
 RUN pip install -U pip setuptools wheel \
     && pip install pytz \
@@ -121,9 +128,9 @@ RUN cd "/tmp" && \
     wget --no-verbose "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
     tar -xvzf "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
     mkdir -p "${SPARK_HOME}/bin" && \
-    mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" && \
+    mkdir -p "${SPARK_HOME}/assembly/target/scala-${SCALA_VERSION}/jars" && \
     cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/bin/." "${SPARK_HOME}/bin/" && \
-    cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars/" && \
+    cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/." "${SPARK_HOME}/assembly/target/scala-${SCALA_VERSION}/jars/" && \
     rm "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
 
 # Create SPARK_HOME env var

@@ -2,20 +2,20 @@ version: '3.7'
 
 x-common:
   &common
-  image: airflow-spark
+  image: airflow-spark:airflow-2.3.0-spark-3.2.0
   user: "${AIRFLOW_UID}:0"
   networks:
     - default_net
   env_file:
     - .env
   volumes:
-    - ./docker-airflow/config/airflow.cfg:/opt/airflow/airflow.cfg
+    - ./docker/airflow/config/airflow.cfg:/opt/airflow/airflow.cfg
     - ./airflow/dags:/opt/airflow/dags #DAG folder
     - ./airflow/logs:/opt/airflow/logs
     - ./airflow/plugins:/opt/airflow/plugins
     - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
     - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
-    - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
+    - shared-workspace:/opt/workspace/facial_database #(Must be the same path in airflow and Spark Cluster)
     - /var/run/docker.sock:/var/run/docker.sock
 
 x-depends-on:
@@ -116,95 +116,70 @@ services:
         chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
         exec /entrypoint airflow version
 
-  spark-master:
-    image: bde2020/spark-master:3.2.0-hadoop3.2
-    container_name: spark-master
-    hostname: spark
+  jupyterlab:
+    image: jupyterlab:3.0.0-spark-3.2.0
+    container_name: jupyterlab
     networks:
       - default_net
-    volumes:
-      - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
-      - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
-      - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
     ports:
-      - "8080:8080"
-      - "7077:7077"
+      - 8888:8888
+      - 4040:4040
+    volumes:
+      - shared-workspace:/opt/workspace/facial_database
+
+  spark-master:
+    image: spark-master:3.2.0
+    container_name: spark-master
+    networks:
+      - default_net
     environment:
-      - INIT_DAEMON_STEP=setup_spark
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
+    ports:
+      - 8080:8080
+      - 7077:7077
+    volumes:
+      - shared-workspace:/opt/workspace/facial_database
 
   spark-worker-1:
-    image: bde2020/spark-worker:3.2.0-hadoop3.2
+    image: spark-worker:3.2.0
     container_name: spark-worker-1
     networks:
       - default_net
-    volumes:
-      - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
-      - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
-      - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
-    depends_on:
-      - spark-master
-    ports:
-      - "8081:8081"
     environment:
-      - SPARK_MASTER=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=1G
       - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=512m
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
+    ports:
+      - 8081:8081
+    volumes:
+      - shared-workspace:/opt/workspace/facial_database
+    depends_on:
+      - spark-master
 
   spark-worker-2:
-    image: bde2020/spark-worker:3.2.0-hadoop3.2
+    image: spark-worker:3.2.0
     container_name: spark-worker-2
     networks:
       - default_net
-    volumes:
-      - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
-      - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
-      - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
-    depends_on:
-      - spark-master
-    ports:
-      - "8082:8081"
     environment:
-      - SPARK_MASTER=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=1G
       - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=512m
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
-
-  spark-history-server:
-    image: bde2020/spark-history-server:3.2.0-hadoop3.2
-    container_name: spark-history-server
-    networks:
-      - default_net
+    ports:
+      - 8082:8081
     volumes:
-      - ./spark/scripts:/usr/local/spark/app #Spark Scripts (Must be the same path in airflow and Spark Cluster)
-      - ./spark/resources:/usr/local/spark/resources #Resources folder (Must be the same path in airflow and Spark Cluster)
-      - ./facial_database:/usr/local/facial_database #(Must be the same path in airflow and Spark Cluster)
-      - /tmp/spark-events-local:/tmp/spark-events
+      - shared-workspace:/opt/workspace/facial_database
     depends_on:
       - spark-master
-    ports:
-      - "18081:18081"
-
-  jupyter-spark:
-      image: jupyter/pyspark-notebook:spark-3.2.0
-      container_name: jupyter
-      networks:
-          - default_net
-      ports:
-        - "8888:8888"
-        - "4040-4080:4040-4080"
-      volumes:
-        - ./facial_database/jupyter_notebooks:/home/jovyan/work/notebooks/
 
   chrome:
     image: seleniarm/standalone-chromium:latest
@@ -223,6 +198,12 @@ services:
 volumes:
   postgres-db-volume:
   mysql-data:
+  shared-workspace:
+    name: "hadoop-distributed-file-system"
+    driver_opts:
+      type: none
+      device: ./facial_database/
+      o: bind
 
 networks:
     default_net:

@@ -36,10 +36,8 @@ function hard_cleanup {
 }
 
 function initial_setup {
-  cd ./docker-airflow
-  echo "Building airflow-spark image from Dockerfile. If this is running for the first time, it might take up to 10 min...."
-  docker build --rm --force-rm --no-cache -t airflow-spark .
-  cd ..
+  echo "Building images from Dockerfiles. If this is running for the first time, it might take up to 10 min...."
+  ./docker/build.sh
 }
 
 function start {
@@ -51,11 +49,6 @@ function update {
   echo "Updating docker images ..."
   docker-compose --project-name wios pull
   echo "You probably should restart"
-}
-
-function token {
-  echo 'Your TOKEN for Jupyter Notebook is:'
-  echo $(docker logs jupyter 2>&1 | grep 'lab?token=' | head -1 | sed -E 's/^.*=([a-z0-9]+).*$/\1/')
 }
 
 case $1 in
@@ -87,16 +80,12 @@ case $1 in
   update
     ;;
 
-  token )
-  token
-    ;;
-
   logs )
   docker-compose --project-name wios logs -f
     ;;
 
   * )
-  printf "ERROR: Missing command\n  Usage: `basename $0` (start|initial_setup|stop|cleanup|hard_cleanup|token|logs|update)\n"
+  printf "ERROR: Missing command\n  Usage: `basename $0` (start|initial_setup|stop|cleanup|hard_cleanup|logs|update)\n"
   exit 1
     ;;
 esac

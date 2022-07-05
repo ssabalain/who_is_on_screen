@@ -1,0 +1,10 @@
+version:
+  airflow: "2.3.0"
+  python: "3.6"
+  spark: "3.2.0"
+  jupyterlab: "3.0.0"
+build:
+  base: "true"
+  airflow: "true"
+  spark: "true"
+  jupyterlab: "true"
