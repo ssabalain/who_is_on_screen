@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-root_facialdb_folder = '/usr/local/facial_database/'
+root_facialdb_folder = '/opt/workspace/facial_database/'
 os.chdir(root_facialdb_folder)
 
 def download_image(url, folder, file_name, num):

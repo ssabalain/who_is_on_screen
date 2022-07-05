@@ -15,9 +15,9 @@ from datetime import datetime, timedelta
 now = datetime.now()
 connection_name = "spark_connection"
 connection_type = "spark"
-host_name = "spark://spark"
+host_name = "spark://spark-master"
 port_number = 7077
-spark_master = host_name + ":" + str(port_number) #"spark://spark:7077"
+spark_master = host_name + ":" + str(port_number) #"spark://spark-master:7077"
 
 #Spark Operator
 spark_task_id = "spark_job"
