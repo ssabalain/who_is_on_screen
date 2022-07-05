@@ -34,7 +34,7 @@ Los contenedores que componen a nuestro ambiente serán inicializados mediante l
 * **Apache Spark**: Plataforma de manejo de Spark, compuesta por:
   * [El nodo master](http://localhost:8080/), mediante el cual accederemos a una UI que nos permitirá monitorear las applicaciones a ejecutar.
   * Dos nodos workers.
-* **Jupyter notebooks**: Nos permitirá acceder a un [web service](http://localhost:8888/) donde podremos ejecutar Jupyter notebooks, inclusive conectandonos al modulo de Spark. Para acceder al servicio apenas inicializado el container, es necesario ejecutar el comando `./control-env.sh token` para obtener el token de ingreso.
+* **Jupyter notebooks**: Nos permitirá acceder a un [web service](http://localhost:8888/) donde podremos ejecutar Jupyter notebooks, inclusive conectandonos al modulo de Spark.
 
 ## Fase 1: Puesta en marcha del ambiente y carga de datos en MySQL
 

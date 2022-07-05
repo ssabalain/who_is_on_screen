@@ -4,7 +4,7 @@ from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
 
 #Initializing Spark Session
-master = "spark://spark:7077"
+master = "spark://spark-master:7077"
 app_name = "Reading dataset with Spark"
 spark = (
     SparkSession.builder
@@ -12,8 +12,8 @@ spark = (
     .master(master)
     .config("spark.driver.memory", "512m")
     .config("spark.driver.cores", "1")
-    .config("spark.executor.memory", "2g")
-    .config("spark.executor.cores", "2")
+    .config("spark.executor.memory", "512m")
+    .config("spark.executor.cores", "1")
     .config("spark.sql.shuffle.partitions", "2")
     .getOrCreate()
 )
@@ -23,7 +23,7 @@ sc.setLogLevel("WARN")
 print("Spark version: " + str(spark.version))
 
 #Reading tsv.gz file
-datasets_path = "/usr/local/facial_database/datasets/imdb_datasets/"
+datasets_path = "/opt/workspace/facial_database/datasets/imdb_datasets/"
 tsv_file = "name.basics.tsv.gz"
 
 print("Reading csv...")

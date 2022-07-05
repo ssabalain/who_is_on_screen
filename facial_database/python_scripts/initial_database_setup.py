@@ -1,6 +1,6 @@
 import check_packages as cp
 import os
-root_facialdb_folder = "/usr/local/facial_database/"
+root_facialdb_folder = "/opt/workspace/facial_database/"
 os.chdir(root_facialdb_folder)
 
 import pandas as pd
