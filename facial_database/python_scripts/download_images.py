@@ -12,7 +12,7 @@ root_facialdb_folder = '/opt/workspace/facial_database/'
 os.chdir(root_facialdb_folder)
 
 def download_image(url, folder, file_name, num):
-    actor_directory = os.path.join(folder,file_name) 
+    actor_directory = os.path.join(folder,file_name)
     #creating a directory to save images
     if not os.path.isdir(actor_directory):
         os.makedirs(actor_directory)
@@ -56,7 +56,7 @@ def create_actor_folder(images_folder,actor_name,dataset_size):
         else:
             total_images = dataset_size
 
-        print(f'We proceed with the download of {total_images} for actor {actor_name}')
+        print(f'We proceed with the download of {total_images} images for actor {actor_name}')
 
         for i in range(1, total_images + 1):
             if i % 25 == 0:
@@ -87,7 +87,7 @@ def create_actor_folder(images_folder,actor_name,dataset_size):
                 else:
                     #making a timeout if the full res image can't be loaded
                     currentTime = time.time()
-                    if currentTime - timeStarted > 10:
+                    if currentTime - timeStarted > 20:
                         print('Timeout! Will download a lower resolution image and move onto the next one')
                         break
 
