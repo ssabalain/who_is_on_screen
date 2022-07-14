@@ -193,7 +193,19 @@ services:
     privileged: true
     shm_size: 2g
     volumes:
-      - ./facial_database:/usr/local/facial_database
+      - shared-workspace:/usr/local/facial_database
+
+  redis:
+    container_name: redis
+    image: redis:6.2-alpine
+    networks:
+      - default_net
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./facial_database/redis_data:/data
 
 volumes:
   postgres-db-volume:
