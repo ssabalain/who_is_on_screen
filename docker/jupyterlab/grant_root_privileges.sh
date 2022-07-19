@@ -1,0 +1,1 @@
+$(docker exec mysql mysql -u root -pWhoisonscreen_Root! -e "GRANT ALL PRIVILEGES ON *.* TO 'WIOS_User'@'%' WITH GRANT OPTION;")

@@ -51,14 +51,21 @@ function update {
   echo "You probably should restart"
 }
 
+function grant_mysql_access {
+  echo "Granting root access to MySQL user..."
+  bash ./docker/jupyterlab/grant_root_privileges.sh
+}
+
 case $1 in
   start )
   start
+  grant_mysql_access
     ;;
 
   initial_setup )
   initial_setup
   start
+  grant_mysql_access
     ;;
 
   stop )
