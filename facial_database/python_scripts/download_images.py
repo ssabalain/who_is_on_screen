@@ -1,3 +1,12 @@
+import check_packages as cp
+
+packages_required = [
+    "selenium"
+    ]
+
+for packs in packages_required:
+  cp.install(packs)
+
 import os
 import requests
 import bs4
@@ -12,17 +21,17 @@ root_facialdb_folder = '/opt/workspace/facial_database/'
 os.chdir(root_facialdb_folder)
 
 def download_image(url, folder, file_name, num):
-    actor_directory = os.path.join(folder,file_name)
+    directory = os.path.join(folder,file_name)
     #creating a directory to save images
-    if not os.path.isdir(actor_directory):
-        os.makedirs(actor_directory)
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
     # write image to file
     response = requests.get(url)
     if response.status_code==200:
-        with open(os.path.join(actor_directory,file_name + '_' + str(num)+'.jpg'), 'wb') as file:
+        with open(os.path.join(directory,file_name + '_' + str(num)+'.jpg'), 'wb') as file:
             file.write(response.content)
 
-def create_actor_folder(images_folder,actor_name,dataset_size):
+def get_images_on_folder(images_folder,search_query,file_name,dataset_size):
     try:
         options = webdriver.ChromeOptions()
         options.add_argument('--ignore-ssl-errors=yes')
@@ -38,7 +47,7 @@ def create_actor_folder(images_folder,actor_name,dataset_size):
         #By-passing cookies
         WebDriverWait(driver,10).until(EC.visibility_of_element_located((By.XPATH,'//*[@id="L2AGLb"]'))).click()
         box = driver.find_element('name', 'q')
-        box.send_keys(actor_name + ' face')
+        box.send_keys(search_query)
         box.send_keys(Keys.RETURN)
         driver.execute_script("window.scrollTo(0, 0);")
 
@@ -55,10 +64,16 @@ def create_actor_folder(images_folder,actor_name,dataset_size):
             total_images = len_containers
         else:
             total_images = dataset_size
+        
+        images_downloaded = 0
+        i = 1
 
-        print(f'We proceed with the download of {total_images} images for actor {actor_name}')
+        print(f'We proceed with the download of {total_images} images for query {search_query}')
 
-        for i in range(1, total_images + 1):
+        while images_downloaded < dataset_size:
+            if i > len_containers:
+                break
+
             if i % 25 == 0:
                 # The 25th element and their multiples are not images but links to other searches, so we skip them
                 continue
@@ -93,11 +108,16 @@ def create_actor_folder(images_folder,actor_name,dataset_size):
 
             #Downloading image
             try:
-                download_image(imageURL, images_folder, actor_name.replace(' ','_').lower() , i)
-                print(f'Downloaded element {i} out of {total_images} total. URL: {imageURL}')
+                download_image(imageURL, images_folder, file_name, images_downloaded + 1)
+                print(f'Downloaded element {images_downloaded + 1} out of {total_images} total. URL: {imageURL}')
+                images_downloaded += 1
+                i += 1
+
             except:
                 print(f"Couldn't download an image {i}, continuing downloading the next one")
+                i += 1
 
+        print(f'Process completed. {images_downloaded} images downloaded')
         driver.quit()
 
     except Exception as e:
