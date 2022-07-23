@@ -24,23 +24,32 @@ def connect_to_mysql(db_user,pwd,database_name = None):
         print("Connecting to MySQL (no database specified)")
         conn = mysql.connector.connect(user= db_user, password= pwd, host= 'mysql')
     else:
-        print("Connecting to MySQL,database: " + database_name)
+        print("Connecting to MySQL, database: " + database_name)
         conn = mysql.connector.connect(user= db_user, password= pwd, host= 'mysql', database= database_name)
-    # print("Connection status: " + str(conn.is_connected()))
     mycursor = conn.cursor()
     return conn,mycursor
 
-#This one doesnt work :( there are some user access problems... workaround: create database directly on docker-compose
 def create_database(db_user,pwd,database_name):
     conn,sql_cursor = connect_to_mysql(db_user,pwd)
-    query = "CREATE DATABASE " + database_name
-    sql_cursor.execute(query)
+    existing_databases = show_databases(db_user,pwd)
+
+    if database_name in existing_databases:
+        print(f"Database '{database_name}' already exists.")
+    else:
+        print("Creating database '" + database_name + "'")
+        query = "CREATE DATABASE " + database_name
+        sql_cursor.execute(query)
+        print(f'Database {database_name} created.')
+
 
 def show_databases(db_user,pwd):
     conn,sql_cursor = connect_to_mysql(db_user,pwd)
     sql_cursor.execute("SHOW DATABASES")
+    databases = []
     for x in sql_cursor:
-        print(x)
+        databases.append(x[0])
+
+    return databases
 
 def create_table(db_user,pwd,database_name,table_name,columns):
     conn,sql_cursor = connect_to_mysql(db_user,pwd,database_name)
@@ -75,6 +84,12 @@ def insert_df_in_table(conn,file_path,dtypes,chunk_size,table_name):
         if ((batch_no % 25) == 0 or batch_no == 1):
             print("Inserting records from batch: " + str(batch_no) + " of table " + table_name + ". Batch size: " + str(chunk_size))
     
+    endtime = time.time()
+    print("All records for table " + table_name + " were inserted. Overall execution time (secs): " + str(endtime - starttime))
+
+def insert_pd_df_in_table(conn,df,table_name,if_exists_method='append'):
+    starttime = time.time()
+    df.to_sql(con = conn, name = table_name, if_exists = if_exists_method,index= False)
     endtime = time.time()
     print("All records for table " + table_name + " were inserted. Overall execution time (secs): " + str(endtime - starttime))
 
