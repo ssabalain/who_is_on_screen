@@ -1,6 +1,6 @@
 # import sys
 # sys.path.append('/usr/local/python_scripts/')
-import check_packages as cp
+import ops_check_packages as cp
 
 packages_required = [
     "mysql-connector-python",

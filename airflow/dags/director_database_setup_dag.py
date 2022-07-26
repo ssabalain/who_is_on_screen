@@ -7,7 +7,7 @@ from datetime import datetime
 import sys
 sys.path.append('/opt/workspace/facial_database/python_scripts/')
 
-import director_database_setup as db
+import setup_director_database as db
 
 ###############################################
 # Parameters

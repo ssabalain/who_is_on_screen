@@ -1,4 +1,4 @@
-import check_packages as cp
+import ops_check_packages as cp
 
 packages_required = [
     "selenium"

@@ -1,7 +1,7 @@
 import json
 import requests
-import check_packages as cp
-import database_operations as db
+import ops_check_packages as cp
+import ops_database_operations as db
 
 packages_required = [
     "pyyaml",
