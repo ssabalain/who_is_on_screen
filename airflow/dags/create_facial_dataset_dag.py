@@ -7,7 +7,8 @@ from datetime import datetime
 import sys
 sys.path.append('/opt/workspace/facial_database/python_scripts/')
 
-import setup_initial_database as db
+import setup_director_database as db_setup
+import setup_facial_dataset as dataset_setup
 
 ###############################################
 # Parameters
@@ -20,8 +21,8 @@ bash_access = "chmod a+x "
 # DAG Definition
 ###############################################
 
-id_dag = "1_0_initial_database_setup"
-dag_description = "This DAG runs the whole MySQL database setup process"
+id_dag = "4__facial_dataset_setup"
+dag_description = "This DAG creates a MySQL database for a specific director, with all the necessary tables, and then downloads the facial dataset"
 dag_args = {
     'owner': 'Santiago',
     'retries': 0,
@@ -46,8 +47,12 @@ with DAG(
         task_id= f'bash_executing_task',
         bash_command= bash_file_path
     )
-    python_task = PythonOperator(
-        task_id='db_setup',
-        python_callable= db.main
+    python_task_1 = PythonOperator(
+        task_id='database_setup',
+        python_callable= db_setup.main
     )
-    dummy_start_task >> bash_task_permissions >> bash_task >> python_task
+    python_task_2 = PythonOperator(
+        task_id='facial_dataset_setup',
+        python_callable= dataset_setup.main
+    )
+    dummy_start_task >> bash_task_permissions >> bash_task >> python_task_1 >> python_task_2

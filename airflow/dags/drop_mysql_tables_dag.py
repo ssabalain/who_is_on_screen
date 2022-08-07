@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import sys
 sys.path.append('/opt/workspace/facial_database/python_scripts/')
 
-import initial_database_setup as db
+import setup_initial_database as db
 
 bash_file_path = "/opt/workspace/facial_database/bash_files/update_pip.sh " #VERY IMPORTANT TO ADD A FINAL SPACE AFTER .sh. ALSO, TAKE A LOOK AT THE PERMISSIONS!!!
 bash_access = "chmod a+x "

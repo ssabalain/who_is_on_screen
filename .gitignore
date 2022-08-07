@@ -8,3 +8,5 @@ part-*
 airflow/logs/
 airflow/plugins/
 facial_database/datasets/
+facial_database/redis_data/
+keys.yml

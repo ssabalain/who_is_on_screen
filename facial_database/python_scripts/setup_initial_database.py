@@ -1,4 +1,4 @@
-import check_packages as cp
+import ops_check_packages as cp
 import os
 root_facialdb_folder = "/opt/workspace/facial_database/"
 os.chdir(root_facialdb_folder)
@@ -6,8 +6,8 @@ os.chdir(root_facialdb_folder)
 import pandas as pd
 import json
 import time
-import database_operations as db
-import download_files as df
+import ops_database_operations as db
+import ops_download_files as df
 
 datasets_folder = 'datasets/imdb_datasets/'
 #Metadata from the IMDB datasets. Can be accessed here: https://www.imdb.com/interfaces/

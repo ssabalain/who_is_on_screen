@@ -7,7 +7,7 @@ from datetime import datetime
 import sys
 sys.path.append('/opt/workspace/facial_database/python_scripts/')
 
-import setup_initial_database as db
+import setup_director_database as db
 
 ###############################################
 # Parameters
@@ -20,8 +20,8 @@ bash_access = "chmod a+x "
 # DAG Definition
 ###############################################
 
-id_dag = "1_0_initial_database_setup"
-dag_description = "This DAG runs the whole MySQL database setup process"
+id_dag = "3__director_database_setup"
+dag_description = "This DAG creates a MySQL database for a specific director, with all the necessary tables"
 dag_args = {
     'owner': 'Santiago',
     'retries': 0,

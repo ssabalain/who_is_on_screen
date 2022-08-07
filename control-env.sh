@@ -7,16 +7,19 @@ function stop {
 
 function cleanup {
   echo "Removing volumes..."
-  docker-compose --project-name wios down --volumes --rmi all
+  docker volume rm $(docker volume ls -q)
   echo "Deleting cache folders..."
   rm -rf ./airflow/dags/__pycache__
   rm -rf ./facial_database/jupyter_notebooks/.ipynb_checkpoints
   rm -rf ./facial_database/python_scripts/__pycache__
+  rm -rf ./facial_database/redis_data
   echo "Deleting log folders..."
   rm -rf ./airflow/logs
 }
 
 function hard_cleanup {
+  echo "Removing volumes and images..."
+  docker-compose --project-name wios down --volumes --rmi all
   read -p "HOLD ON THERE, YOU CINEPHILE! You are about to delete the '/datasets' folder and clean some unused stuff from Docker-Desktop.\
   Are you sure you want to continue? [y/n] " -n 1 -r
   echo
@@ -51,14 +54,21 @@ function update {
   echo "You probably should restart"
 }
 
+function grant_mysql_access {
+  echo "Granting root access to MySQL user..."
+  bash ./docker/jupyterlab/grant_root_privileges.sh
+}
+
 case $1 in
   start )
   start
+  grant_mysql_access
     ;;
 
   initial_setup )
   initial_setup
   start
+  grant_mysql_access
     ;;
 
   stop )
