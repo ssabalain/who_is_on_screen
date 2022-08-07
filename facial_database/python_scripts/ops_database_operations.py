@@ -51,6 +51,19 @@ def show_databases(db_user,pwd):
 
     return databases
 
+def return_array_from_query(user,pwd,db,query):
+    conn,sql_cursor = connect_to_mysql(user,pwd,db)
+    sql_cursor.execute(query)
+    field_names = [i[0] for i in sql_cursor.description]
+    final_array = []
+    for row in sql_cursor:
+        row_dic = dict()
+        for i in range(len(field_names)):
+            row_dic[field_names[i]] = row[i]
+        final_array.append(row_dic)
+
+    return final_array
+
 def create_table(db_user,pwd,database_name,table_name,columns):
     conn,sql_cursor = connect_to_mysql(db_user,pwd,database_name)
     query_cols = " ("

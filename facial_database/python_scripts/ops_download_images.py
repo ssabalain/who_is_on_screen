@@ -21,14 +21,13 @@ root_facialdb_folder = '/opt/workspace/facial_database/'
 os.chdir(root_facialdb_folder)
 
 def download_image(url, folder, file_name, num):
-    directory = os.path.join(folder,file_name)
     #creating a directory to save images
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
     # write image to file
     response = requests.get(url)
     if response.status_code==200:
-        with open(os.path.join(directory,file_name + '_' + str(num)+'.jpg'), 'wb') as file:
+        with open(os.path.join(folder,file_name + '_' + str(num)+'.jpg'), 'wb') as file:
             file.write(response.content)
 
 def get_images_on_folder(images_folder,search_query,file_name,dataset_size):
