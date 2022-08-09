@@ -24,6 +24,14 @@ RUN curl https://archive.apache.org/dist/spark/spark-${spark_version}/spark-${sp
     mkdir /usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}/logs && \
     rm spark.tgz
 
+# -- Layer: pip modules
+RUN apt-get update -y && \
+    apt-get install -y python3-pip python3-dev && \
+    pip3 install --upgrade pip
+
+COPY /docker/spark-base/requirements.txt tmp/requirements.txt
+RUN cat tmp/requirements.txt | xargs -n 1 pip install
+
 ENV SPARK_HOME /usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}
 ENV SPARK_MASTER_HOST spark-master
 ENV SPARK_MASTER_PORT 7077

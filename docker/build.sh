@@ -34,6 +34,7 @@ SHOULD_BUILD_JUPYTERLAB=${build_jupyterlab}
 
 AIRFLOW_VERSION=${version_airflow}
 PYTHON_VERSION=${version_python}
+PYTHON_VERSION_SHORT="${PYTHON_VERSION:0:3}"
 SPARK_VERSION=${version_spark}
 JUPYTERLAB_VERSION=${version_jupyterlab}
 
@@ -125,6 +126,8 @@ function buildImages() {
   then
     docker build \
       --build-arg build_date="${BUILD_DATE}" \
+      --build-arg PYTHON_VERSION="${PYTHON_VERSION}" \
+      --build-arg PYTHON_VERSION_SHORT="${PYTHON_VERSION_SHORT}" \
       --build-arg scala_version="${SCALA_VERSION}" \
       -f ./docker/base/Dockerfile \
       -t base:latest .

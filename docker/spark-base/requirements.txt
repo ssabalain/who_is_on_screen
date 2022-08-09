@@ -1,0 +1,6 @@
+selenium==4.3.0
+opencv-python
+matplotlib
+redis
+tensorflow
+deepface
