@@ -4,3 +4,4 @@ matplotlib
 redis
 tensorflow
 deepface
+imutils
