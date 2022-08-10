@@ -59,5 +59,5 @@ def main():
     movies = ['Inception']
     actors_per_movie = 15
     images_by_actor = 10
-    dataset_folder = '/opt/workspace/facial_database/datasets/actor_faces/'
+    dataset_folder = '/opt/workspace/src/datasets/actor_faces/'
     create_facial_dataset(movies,actors_per_movie,sql_data,dataset_folder, images_by_actor)

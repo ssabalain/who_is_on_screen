@@ -97,7 +97,7 @@ def create_director_database(director_name,tmdb_keys_path,sql_user,sql_pwd):
 
 def main():
     director_name = 'Christopher Nolan'
-    tmdb_keys_path = '/opt/workspace/facial_database/keys.yml'
+    tmdb_keys_path = '/opt/workspace/src/keys.yml'
     sql_user = 'WIOS_User'
     sql_pwd = 'Whoisonscreen!'
     create_director_database(director_name,tmdb_keys_path,sql_user,sql_pwd)

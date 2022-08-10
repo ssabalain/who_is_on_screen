@@ -5,7 +5,7 @@ from airflow.operators.bash_operator import BashOperator
 from datetime import datetime
 
 import sys
-sys.path.append('/opt/workspace/facial_database/python_scripts/')
+sys.path.append('/opt/workspace/src/python_scripts/')
 
 import setup_director_database as db_setup
 import setup_facial_dataset as dataset_setup
@@ -14,7 +14,7 @@ import setup_facial_dataset as dataset_setup
 # Parameters
 ###############################################
 
-bash_file_path = "/opt/workspace/facial_database/bash_files/update_pip.sh " #VERY IMPORTANT TO ADD A FINAL SPACE AFTER .sh. ALSO, TAKE A LOOK AT THE PERMISSIONS!!!
+bash_file_path = "/opt/workspace/src/bash_files/update_pip.sh " #VERY IMPORTANT TO ADD A FINAL SPACE AFTER .sh. ALSO, TAKE A LOOK AT THE PERMISSIONS!!!
 bash_access = "chmod a+x "
 
 ###############################################
