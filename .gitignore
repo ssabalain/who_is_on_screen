@@ -10,3 +10,5 @@ airflow/plugins/
 src/datasets/
 src/redis_data/
 keys.yml
+src/models/logs
+src/models/embeddings
