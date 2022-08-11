@@ -5,4 +5,5 @@ redis
 tensorflow
 deepface
 imutils
-logger
+pyyaml
+sklearn
