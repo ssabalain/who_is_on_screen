@@ -68,6 +68,8 @@ RUN pip install -U pip setuptools wheel
 
 COPY /docker/airflow/requirements.txt tmp/requirements.txt
 RUN cat tmp/requirements.txt | xargs -n 1 pip install
+COPY /docker/requirements.txt tmp/requirements.txt
+RUN cat tmp/requirements.txt | xargs -n 1 pip install
 
 RUN pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install apache-airflow-providers-apache-spark \

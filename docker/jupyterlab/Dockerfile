@@ -26,7 +26,7 @@ RUN apt-get update -y && \
     pip3 install --upgrade pip && \
     pip3 install wget==3.2 pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
-COPY /docker/jupyterlab/requirements.txt tmp/requirements.txt
+COPY /docker/requirements.txt tmp/requirements.txt
 RUN cat tmp/requirements.txt | xargs -n 1 pip install
 
 # -- Layer: Scala kernel for Spark
