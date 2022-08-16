@@ -7,3 +7,4 @@ deepface
 imutils
 pyyaml
 sklearn
+scikit-image
