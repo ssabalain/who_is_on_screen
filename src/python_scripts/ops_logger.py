@@ -2,7 +2,12 @@ import logging
 import os
 from datetime import datetime
 
-def create_logger(logs_path,script_name,level='INFO'):
+def create_logger(logs_path = None,script_name = None,level='INFO'):
+    if logs_path is None:
+        logs_path = './models/logs'
+
+    if script_name is None:
+        script_name = os.path.basename(__name__)
 
     if not os.path.exists(logs_path):
         os.makedirs(logs_path)

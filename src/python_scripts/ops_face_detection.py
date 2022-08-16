@@ -4,9 +4,10 @@ import imutils
 import cv2
 import os
 import matplotlib.pyplot as plt
-from time import time
+from time import time, strftime, localtime
 from datetime import datetime
 import imghdr
+
 import ops_logger as log
 import ops_files_operations as files
 
@@ -35,7 +36,23 @@ def get_actors_dict(actor_faces_folder):
 
     return(actors_dict)
 
-def get_embeddings_from_image(img_path, opencv_dnn_model,embedder,logger,multiple_faces = False, min_confidence=0.9, display=False):
+def get_embeddings_from_image(img_path,opencv_dnn_model=None,embedder=None,multiple_faces = False, min_confidence=0.9, display=False,logger = None):
+    if logger is None:
+        close_logger = True
+        logger = log.create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+    else:
+        close_logger = False
+
+    if opencv_dnn_model is None:
+        logger.debug('OpenCV DNN model not provided. Loading default model.')
+        protoPath = './models/face_detector/deploy.prototxt'
+        modelPath = './models/face_detector/res10_300x300_ssd_iter_140000.caffemodel'
+        opencv_dnn_model = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
+
+    if embedder is None:
+        logger.debug('Embedding model not provided. Loading default model.')
+        embeddingPath = './models/face_detector/openface.nn4.small2.v1.t7'
+        embedder = cv2.dnn.readNetFromTorch(embeddingPath)
 
     logger.debug(f'Starting face detection. Multiple faces: {multiple_faces}. Minimun confidence: {min_confidence}. Display mode: {display}')
     scanned_faces = 0
@@ -57,7 +74,7 @@ def get_embeddings_from_image(img_path, opencv_dnn_model,embedder,logger,multipl
 
     logger.debug(f'Scanning image...')
     scan_start = time()
-    results = opencv_dnn_model.forward()    
+    results = opencv_dnn_model.forward()
     scan_end = time()
     scan_time = str(scan_end - scan_start)
     logger.debug(f'Scanning complete. Exec time: {scan_time} seconds.')
@@ -108,25 +125,26 @@ def get_embeddings_from_image(img_path, opencv_dnn_model,embedder,logger,multipl
                 cv2.rectangle(output_image, pt1=(x1, y1), pt2=(x2, y2), color=(0, 255, 0), thickness=w//200)
 
     logger.debug(f'Scan completed. Total faces scanned: {str(scanned_faces)}.')
+    if close_logger:
+        log.shutdown_logger(logger)
 
     if display:
         plt.figure(figsize=[20,20])
         plt.subplot(121);plt.imshow(image[:,:,::-1]);plt.title("Original Image");plt.axis('off');
         plt.subplot(122);plt.imshow(output_image[:,:,::-1]);plt.title("Output");plt.axis('off');
 
-    else:
-        return embeddings
+    return embeddings
 
-def get_actors_embeddings(actor_faces_folder,logger,images_per_actor = None):
+def get_actors_embeddings(actor_faces_folder,images_per_actor = None, logger = None):
+    if logger is None:
+        close_logger = True
+        logger = log.create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+    else:
+        close_logger = False
+
     process_start = time()
     actors_dict = get_actors_dict(actor_faces_folder)
     logger.info(f'Totals actors retrieved: {len(actors_dict)}.')
-
-    protoPath = './models/face_detector/deploy.prototxt'
-    modelPath = './models/face_detector/res10_300x300_ssd_iter_140000.caffemodel'
-    embeddingPath = './models/face_detector/openface.nn4.small2.v1.t7'
-    detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
-    embedder = cv2.dnn.readNetFromTorch(embeddingPath)
 
     actors_names = []
     actors_embeddings = []
@@ -144,7 +162,7 @@ def get_actors_embeddings(actor_faces_folder,logger,images_per_actor = None):
 
             logger.debug(f'Getting embeddings for image {i+1}/{images_per_actor} for actor {actor}.')
             try:
-                img_embeddings = get_embeddings_from_image(img_path,detector,embedder,logger)
+                img_embeddings = get_embeddings_from_image(img_path,logger = logger)
             except ValueError as err:
                 logger.error(err)
                 continue
@@ -165,17 +183,31 @@ def get_actors_embeddings(actor_faces_folder,logger,images_per_actor = None):
     process_end = time()
     process_time = str(process_end - process_start)
     logger.info(f'Embedding extraction finished. Exec time: {process_time}.')
-    return emb_dict
+    metadata_dict = {
+        "execution_timestamp": strftime('%Y-%m-%d %H:%M:%S', localtime(process_start)),
+        "process_time": process_time,
+        "total_actors": len(actors_dict)
+    }
+    if close_logger:
+        log.shutdown_logger(logger)
 
-def main():
-    log_folder = './models/logs'
+    return emb_dict, metadata_dict
+
+
+def create_embeddings_model(logger = None):
+    if logger is None:
+        close_logger = True
+        logger = log.create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+    else:
+        close_logger = False
+
     faces_dataset_folder = './datasets/actor_faces'
-    embeddings_file = './models/embeddings/embeddings.pickle'
+    embeddings_index_file = './models/embeddings/embeddings_metadata.json'
 
-    logger = log.create_logger(log_folder,script_name,level='info')
-    embeddings = get_actors_embeddings(faces_dataset_folder,logger)
-    files.create_pickle_file(embeddings,embeddings_file,logger)
-    log.shutdown_logger(logger)
+    embeddings, embeddings_metadata = get_actors_embeddings(faces_dataset_folder,logger = logger)
+    files.add_embeddings_model(embeddings_index_file,embeddings, embeddings_metadata,logger = logger)
+    if close_logger:
+        log.shutdown_logger(logger)
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
