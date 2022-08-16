@@ -12,3 +12,4 @@ src/redis_data/
 keys.yml
 src/models/logs
 src/models/embeddings
+src/models/recognizers
