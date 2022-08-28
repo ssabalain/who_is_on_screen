@@ -1,22 +1,10 @@
-# import sys
-# sys.path.append('/usr/local/python_scripts/')
-import ops_check_packages as cp
-
-packages_required = [
-    "mysql-connector-python",
-    "pandas",
-    "sqlalchemy",
-    "pymysql",
-    "numpy"
-    ]
-
-for packs in packages_required:
-  cp.install(packs)
+from ops_check_packages import install_packages
+ops_database_operations_packages = ["mysql-connector-python","sqlalchemy","pymysql","pandas"]
+install_packages(ops_database_operations_packages)
 
 import mysql.connector
 import pandas as pd
 from sqlalchemy import create_engine
-import numpy as np
 import time
 
 def connect_to_mysql(db_user,pwd,database_name = None):
@@ -40,7 +28,6 @@ def create_database(db_user,pwd,database_name):
         query = "CREATE DATABASE " + database_name
         sql_cursor.execute(query)
         print(f'Database {database_name} created.')
-
 
 def show_databases(db_user,pwd):
     conn,sql_cursor = connect_to_mysql(db_user,pwd)

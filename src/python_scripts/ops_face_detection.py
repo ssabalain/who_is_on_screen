@@ -1,14 +1,19 @@
+from ops_check_packages import install_packages
+ops_face_detection_packages = ["imutils","opencv-python","matplotlib"]
+install_packages(ops_face_detection_packages)
+
 from imutils import paths
 import numpy as np
 import imutils
 import cv2
 import os
 import matplotlib.pyplot as plt
-from time import time, strftime, localtime
+from time import time, strftime, localtime, gmtime
 from datetime import datetime
 import imghdr
+import uuid
 
-import ops_logger as log
+from ops_logger import create_logger, shutdown_logger
 import ops_files_operations as files
 
 #Set 'src' folder as the working directory
@@ -36,10 +41,10 @@ def get_actors_dict(actor_faces_folder):
 
     return(actors_dict)
 
-def get_embeddings_from_image(img_path,opencv_dnn_model=None,embedder=None,multiple_faces = False, min_confidence=0.9, display=False,logger = None):
+def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model=None,embedder=None,multiple_faces = False, min_confidence=0.9, display=False,logger = None):
     if logger is None:
         close_logger = True
-        logger = log.create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
     else:
         close_logger = False
 
@@ -56,14 +61,24 @@ def get_embeddings_from_image(img_path,opencv_dnn_model=None,embedder=None,multi
 
     logger.debug(f'Starting face detection. Multiple faces: {multiple_faces}. Minimun confidence: {min_confidence}. Display mode: {display}')
     scanned_faces = 0
+    emb_time = 0
+    scan_time = 0
     embeddings = []
-    admited_file_types = ['jpeg','png','webp',None]
-    file_format = imghdr.what(img_path)
 
-    if file_format not in admited_file_types:
-        raise ValueError('The image provided is not withing the admited file formats',file_format)
+    if provided_image is None:
+        if img_path is None:
+            logger.error('No image provided.')
+            return
+        else:
+            admited_file_types = ['jpeg','png','webp',None]
+            file_format = imghdr.what(img_path)
 
-    image = cv2.imread(img_path)
+            if file_format not in admited_file_types:
+                raise ValueError('The image provided is not withing the admited file formats',file_format)
+            image = cv2.imread(img_path)
+    else:
+        image = provided_image
+
     image = imutils.resize(image, width=600)
     h, w, _ = image.shape
     output_image = image.copy()
@@ -126,19 +141,27 @@ def get_embeddings_from_image(img_path,opencv_dnn_model=None,embedder=None,multi
 
     logger.debug(f'Scan completed. Total faces scanned: {str(scanned_faces)}.')
     if close_logger:
-        log.shutdown_logger(logger)
+        shutdown_logger(logger)
 
     if display:
         plt.figure(figsize=[20,20])
         plt.subplot(121);plt.imshow(image[:,:,::-1]);plt.title("Original Image");plt.axis('off');
         plt.subplot(122);plt.imshow(output_image[:,:,::-1]);plt.title("Output");plt.axis('off');
 
-    return embeddings
+    embeddings_metadata = {
+        "img_path": img_path,
+        "scanned_faces":str(scanned_faces),
+        "face_confidence":str(face_confidence),
+        "scan_time":str(scan_time),
+        "emb_time":str(emb_time)
+    }
+
+    return embeddings, embeddings_metadata
 
 def get_actors_embeddings(actor_faces_folder,images_per_actor = None, logger = None):
     if logger is None:
         close_logger = True
-        logger = log.create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
     else:
         close_logger = False
 
@@ -148,8 +171,19 @@ def get_actors_embeddings(actor_faces_folder,images_per_actor = None, logger = N
 
     actors_names = []
     actors_embeddings = []
+    metadata_dict = {
+        "execution_timestamp": strftime('%Y-%m-%d %H:%M:%S', localtime(process_start)),
+        "process_time": "0",
+        "total_actors": str(len(actors_dict)),
+        "actors":[]
+    }
 
     for actor, actors_images in actors_dict.items():
+        actor_info = {
+            "name": actor,
+            "total_images": "0",
+            "images_processed": []
+        }
         processed_images = 0
         if images_per_actor is None:
             images_per_actor = len(actors_images)
@@ -162,7 +196,7 @@ def get_actors_embeddings(actor_faces_folder,images_per_actor = None, logger = N
 
             logger.debug(f'Getting embeddings for image {i+1}/{images_per_actor} for actor {actor}.')
             try:
-                img_embeddings = get_embeddings_from_image(img_path,logger = logger)
+                img_embeddings, img_metadata = get_embeddings_from_image(img_path,logger = logger)
             except ValueError as err:
                 logger.error(err)
                 continue
@@ -172,10 +206,14 @@ def get_actors_embeddings(actor_faces_folder,images_per_actor = None, logger = N
                     processed_images+=1
                     actors_names.append(actor)
                     actors_embeddings.append(img_embeddings)
+                    actor_info["images_processed"].append(img_metadata)
+
             else:
                 logger.debug("Embedding is not 128, so we skip it.")
                 continue
 
+        actor_info["total_images"] = str(processed_images)
+        metadata_dict["actors"].append(actor_info)
         logger.info(f'{processed_images}/{images_per_actor} images for actor {actor} were processed.')
         images_per_actor = None
 
@@ -183,31 +221,148 @@ def get_actors_embeddings(actor_faces_folder,images_per_actor = None, logger = N
     process_end = time()
     process_time = str(process_end - process_start)
     logger.info(f'Embedding extraction finished. Exec time: {process_time}.')
-    metadata_dict = {
-        "execution_timestamp": strftime('%Y-%m-%d %H:%M:%S', localtime(process_start)),
-        "process_time": process_time,
-        "total_actors": len(actors_dict)
-    }
+    metadata_dict["process_time"] = str(process_time)
+
     if close_logger:
-        log.shutdown_logger(logger)
+        shutdown_logger(logger)
 
     return emb_dict, metadata_dict
 
-
-def create_embeddings_model(logger = None):
+def create_embeddings_model(faces_dataset_folder,embeddings_index_file,logger = None):
     if logger is None:
         close_logger = True
-        logger = log.create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
     else:
         close_logger = False
-
-    faces_dataset_folder = './datasets/actor_faces'
-    embeddings_index_file = './models/embeddings/embeddings_metadata.json'
 
     embeddings, embeddings_metadata = get_actors_embeddings(faces_dataset_folder,logger = logger)
     files.add_embeddings_model(embeddings_index_file,embeddings, embeddings_metadata,logger = logger)
     if close_logger:
-        log.shutdown_logger(logger)
+        shutdown_logger(logger)
 
-# if __name__ == '__main__':
-#     main()
+def process_video(video_path,desired_fps = 1, starting_frame = 0, ending_frame = None, logger = None):
+    if logger is None:
+        close_logger = True
+        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+    else:
+        close_logger = False
+
+    process_start = time()
+    frames_read = 0
+    results = []
+
+    try:
+        cap = cv2.VideoCapture(video_path)
+    except ValueError as err:
+        logger.error(err)
+        return
+
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    video_fps = cap.get(cv2.CAP_PROP_FPS)
+    logger.debug(f'Video fps: {video_fps}, total frames: {total_frames}, desired fps: {desired_fps}, starting frame: {starting_frame}, ending frame: {ending_frame}.')
+
+    frame_no = starting_frame
+    if starting_frame != 0:
+        if starting_frame > total_frames:
+            logger.error(f'Starting frame {starting_frame} is greater than total frames {total_frames}.')
+            return
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no-1)
+
+    if ending_frame is None:
+        ending_frame = total_frames
+
+    while(cap.isOpened()):
+        frame_exists, curr_frame = cap.read()
+        if frame_exists and frame_no <= ending_frame:
+            if frame_no % (round(video_fps/desired_fps)) == 0:
+                try:
+                    frames_read+=1
+                    frame_timestamp = strftime('%H:%M:%S.{}'.format(round(round((frame_no/video_fps) % 1,3)*1000)), gmtime(frame_no/video_fps))
+                    frame_embeddings = np.array(get_embeddings_from_image(provided_image=curr_frame, multiple_faces=True, logger=logger ))
+                    results.append([str(frame_no),str(frame_timestamp),frame_embeddings])
+                except ValueError as err:
+                    logger.error(err)
+                    return
+        else:
+            break
+
+        frame_no += 1
+
+    results_array = np.asarray(results, dtype=object)
+    process_end = time()
+    process_time = str(process_end - process_start)
+    logger.info(f'Total execution time = {process_time} seconds. Total frames: {frames_read}')
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    if close_logger:
+        shutdown_logger(logger)
+
+    metadata_dict = {
+        "starting_frame": str(starting_frame),
+        "ending_frame": str(ending_frame),
+        "frames_read": str(frames_read),
+        "execution_timestamp": strftime('%Y-%m-%d %H:%M:%S', localtime(process_start)),
+        "process_time": str(process_time)
+    }
+
+    return results_array, metadata_dict
+
+def get_video_embeddings(video_path, results_path, partitions = 1, desired_fps = 1,logger = None):
+    if logger is None:
+        close_logger = True
+        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+    else:
+        close_logger = False
+
+    process_start = time()
+    try:
+        cap = cv2.VideoCapture(video_path)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        video_fps = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
+        cv2.destroyAllWindows()
+    except ValueError as err:
+        logger.error(err)
+        return
+
+    chunks = []
+    chunk_size = round(total_frames/partitions)
+    for i in range(partitions):
+        starting_frame = i*chunk_size
+        ending_frame = (starting_frame + chunk_size) - 1
+        if ending_frame > total_frames or partitions == 1:
+            ending_frame = total_frames
+        chunk = [starting_frame,ending_frame]
+        chunks.append(chunk)
+
+    video_name = video_path.split(os.path.sep)[-1].split('.')[0]
+    execution_metadata = {
+        "execution_id": str(uuid.uuid4()),
+        "execution_timestamp": strftime('%Y-%m-%d %H:%M:%S', localtime(process_start)),
+        "video_path": video_path,
+        "total_frames": str(total_frames),
+        "video_fps": str(video_fps),
+        "desired_fps": str(desired_fps),
+        "partitions": str(partitions),
+        "chunks": []
+    }
+
+    for idx, chunk in enumerate(chunks):
+        results, chunk_metadata = process_video(video_path,desired_fps = desired_fps, starting_frame = chunk[0], ending_frame = chunk[1], logger = logger)
+        chunk_name = video_name + '_' + str(idx+1)
+        results_file = os.path.join(results_path,video_name,execution_metadata["execution_id"],chunk_name + '.pickle')
+        files.create_pickle_file(results,results_file,logger = logger)
+        chunk_metadata.update({"chunk": str(idx+1),"chunk_file": results_file})
+        execution_metadata['chunks'].append(chunk_metadata)
+
+    results_file = os.path.join(results_path,video_name,'results_metadata.json')
+    files.add_embeddings_data(results_file, execution_metadata, logger = logger)
+
+    process_end = time()
+    process_time = str(process_end - process_start)
+    logger.info(f'Total execution time = {process_time} seconds.')
+
+    if close_logger:
+        shutdown_logger(logger)
