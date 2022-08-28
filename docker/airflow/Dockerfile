@@ -64,19 +64,16 @@ RUN set -ex \
 
 USER airflow
 
-COPY ./docker/airflow/requirements.txt /requirements.txt
+RUN pip install -U pip setuptools wheel
 
-RUN pip install -U pip setuptools wheel \
-    && pip install pytz \
-    && pip install pyOpenSSL \
-    && pip install ndg-httpsclient \
-    && pip install pyasn1 \
-    && pip freeze > requirements.txt \
-    && pip install -r requirements.txt \
-    && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
+COPY /docker/airflow/requirements.txt tmp/requirements.txt
+RUN cat tmp/requirements.txt | xargs -n 1 pip install
+COPY /docker/requirements.txt tmp/requirements.txt
+RUN cat tmp/requirements.txt | xargs -n 1 pip install
+
+RUN pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install apache-airflow-providers-apache-spark \
     && pip install pyspark==${SPARK_VERSION} \
-    && pip install selenium==4.3.0 \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
     && pip freeze
 

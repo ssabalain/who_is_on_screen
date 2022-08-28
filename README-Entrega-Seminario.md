@@ -82,7 +82,7 @@ Allí encontraremos distintos DAGs que se dividirán en dos grandes grupos:
 
 Para inicializar cualquiera de estos DAGs hace falta tan solo "encenderlos", clickeando el boton ON/OFF disponible.
 
-Dentro del primer grupo de DAGs, encontraremos uno llamado "[1_0_initial_database_setup](airflow/dags/initial_database_setup_dag.py)". El mismo se compone de un Bash Operator que actualiza el servicio PIP del container de Airflow, y luego un Python Operator que ejecuta el script "[initial_database_setup.py](facial_database/python_scripts/initial_database_setup.py)".
+Dentro del primer grupo de DAGs, encontraremos uno llamado "[1_0_initial_database_setup](airflow/dags/initial_database_setup_dag.py)". El mismo se compone de un Bash Operator que actualiza el servicio PIP del container de Airflow, y luego un Python Operator que ejecuta el script "[initial_database_setup.py](src/python_scripts/initial_database_setup.py)".
 
 Este DAG realiza el proceso completo de ingesta de datos a nuestra base de datos, que consiste en:
 
@@ -112,4 +112,4 @@ En segundo lugar, las ejecuciones per se de una Spark App desde Airflow se reali
 
 Para ejecutar una Spark Application desde un Jupyter Notebook es necesario importar la funcion "SparkSession" de la libreria pyspark.sql, la cual nos permitirá configurar los parametros que posibilitarán la conexion con el Cluster de Spark.
 
-El notebook [0_connecting_to_spark.ipynb](facial_database/jupyter_notebooks/0_connecting_to_spark.ipynb) muestra de manera detallada como establecer una conexion y ejecutar un simple comando de Spark.
+El notebook [0_connecting_to_spark.ipynb](src/jupyter_notebooks/0_connecting_to_spark.ipynb) muestra de manera detallada como establecer una conexion y ejecutar un simple comando de Spark.

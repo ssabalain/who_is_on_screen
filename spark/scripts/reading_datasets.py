@@ -23,7 +23,7 @@ sc.setLogLevel("WARN")
 print("Spark version: " + str(spark.version))
 
 #Reading tsv.gz file
-datasets_path = "/opt/workspace/facial_database/datasets/imdb_datasets/"
+datasets_path = "/opt/workspace/src/datasets/imdb_datasets/"
 tsv_file = "name.basics.tsv.gz"
 
 print("Reading csv...")

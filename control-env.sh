@@ -10,9 +10,9 @@ function cleanup {
   docker volume rm $(docker volume ls -q)
   echo "Deleting cache folders..."
   rm -rf ./airflow/dags/__pycache__
-  rm -rf ./facial_database/jupyter_notebooks/.ipynb_checkpoints
-  rm -rf ./facial_database/python_scripts/__pycache__
-  rm -rf ./facial_database/redis_data
+  rm -rf ./src/jupyter_notebooks/.ipynb_checkpoints
+  rm -rf ./src/python_scripts/__pycache__
+  rm -rf ./src/redis_data
   echo "Deleting log folders..."
   rm -rf ./airflow/logs
 }
@@ -30,7 +30,7 @@ function hard_cleanup {
   fi
   echo "Alright, here we go..."
   echo "Deleting datasets..."
-  rm -rf ./facial_database/datasets
+  rm -rf ./src/datasets
   echo "Cleaning Docker-Desktop..."
   docker rm $(docker ps -f status=exited -aq)
   docker rmi $(docker images -f "dangling=true" -q)

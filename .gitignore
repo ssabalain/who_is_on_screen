@@ -7,6 +7,9 @@ part-*
 *.pyc
 airflow/logs/
 airflow/plugins/
-facial_database/datasets/
-facial_database/redis_data/
+src/datasets/
+src/redis_data/
 keys.yml
+src/models/logs
+src/models/embeddings
+src/models/recognizers
