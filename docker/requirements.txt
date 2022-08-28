@@ -8,3 +8,5 @@ imutils
 pyyaml
 sklearn
 scikit-image
+requests
+bs4
