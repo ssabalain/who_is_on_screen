@@ -96,6 +96,7 @@ def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model
 
     i = np.argmax(results[0, 0, :, 2])
     iteration = 0
+    face_confidence_array = []
 
     for face in results[0][0]:
         if not multiple_faces:
@@ -106,8 +107,9 @@ def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model
         face_confidence = face[2]
 
         if face_confidence > min_confidence:
-
             logger.debug(f'Scanning face {iteration}. Face confidence: {face_confidence}.')
+
+            face_confidence_array.append(face_confidence)
 
             # compute the (x, y)-coordinates of the bounding box for the face
             box = face[3:7] * np.array([w, h, w, h])
@@ -151,7 +153,7 @@ def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model
     embeddings_metadata = {
         "img_path": img_path,
         "scanned_faces":str(scanned_faces),
-        "face_confidence":str(face_confidence),
+        "face_confidence":face_confidence_array,
         "scan_time":str(scan_time),
         "emb_time":str(emb_time)
     }
@@ -249,6 +251,7 @@ def process_video(video_path,desired_fps = 1, starting_frame = 0, ending_frame =
 
     process_start = time()
     frames_read = 0
+    frames_with_faces = 0
     results = []
 
     try:
@@ -278,8 +281,10 @@ def process_video(video_path,desired_fps = 1, starting_frame = 0, ending_frame =
                 try:
                     frames_read+=1
                     frame_timestamp = strftime('%H:%M:%S.{}'.format(round(round((frame_no/video_fps) % 1,3)*1000)), gmtime(frame_no/video_fps))
-                    frame_embeddings = np.array(get_embeddings_from_image(provided_image=curr_frame, multiple_faces=True, logger=logger ))
-                    results.append([str(frame_no),str(frame_timestamp),frame_embeddings])
+                    frame_embeddings = np.array(get_embeddings_from_image(provided_image=curr_frame, multiple_faces=True, logger=logger), dtype=object)
+                    if int(frame_embeddings[1]["scanned_faces"]) > 0:
+                        frames_with_faces+=1
+                        results.append([str(frame_no),str(frame_timestamp),frame_embeddings])
                 except ValueError as err:
                     logger.error(err)
                     return
@@ -303,6 +308,7 @@ def process_video(video_path,desired_fps = 1, starting_frame = 0, ending_frame =
         "starting_frame": str(starting_frame),
         "ending_frame": str(ending_frame),
         "frames_read": str(frames_read),
+        "frames_with_faces": str(frames_with_faces),
         "execution_timestamp": strftime('%Y-%m-%d %H:%M:%S', localtime(process_start)),
         "process_time": str(process_time)
     }

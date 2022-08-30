@@ -70,7 +70,27 @@ def read_pickle_file(path,logger = None):
 
     return data_dict
 
-def read_json_file(path,logger = None):
+def create_json_file(data_dict,path,logger=None):
+    if logger is None:
+        close_logger = True
+        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+    else:
+        close_logger = False
+
+    if os.path.exists(os.path.dirname(path)) == False:
+        logger.debug(f'Path {os.path.dirname(path)} doesn\'t exist, we will create it.')
+        os.makedirs(os.path.dirname(path))
+
+    logger.debug(f'Creating json file at {path}.')
+    with open(path,'w') as json_file:
+        json.dump(data_dict, json_file, indent=4, separators=(',',': '))
+    json_file.close()
+    logger.debug(f'Json file created at {path}.')
+
+    if close_logger:
+        shutdown_logger(logger)
+
+def read_json_file(path,logger=None):
     if logger is None:
         close_logger = True
         logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
@@ -123,14 +143,11 @@ def add_embeddings_data(path,embeddings_dict,logger = None):
         embeddings_array.append(embeddings_dict)
     else:
         logger.debug(f'File {path.split(os.path.sep)[-1]} already exist.')
-        with open(path) as json_file:
-            embeddings_array = json.load(json_file)
+        embeddings_array = read_json_file(path,logger)
         embeddings_array.append(embeddings_dict)
 
-    with open(path,'w') as json_file:
-        json.dump(embeddings_array, json_file, indent=4, separators=(',',': '))
-    json_file.close()
-    logger.debug(f'Dictionary succesfully added.')
+    create_json_file(embeddings_array,path,logger)
+
     if close_logger:
         shutdown_logger(logger)
 
@@ -159,17 +176,27 @@ def add_embeddings_model(index_file,embeddings,metadata,logger = None):
     if close_logger:
         shutdown_logger(logger)
 
-def add_recognizer_path_to_model(model_path,recognizer_path,logger = None):
+def add_recognizer_path_to_model(recognizer_path,model_name,logger = None):
     if logger is None:
         close_logger = True
         logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
     else:
         close_logger = False
 
-    logger.debug(f'Adding recognizer path to model {model_path.split(os.path.sep)[-1]}.')
-    model_dict = read_pickle_file(model_path,logger)
-    model_dict['recognizer_path'] = recognizer_path
-    create_pickle_file(model_dict,model_path,logger)
-    logger.debug(f'Recognizer path succesfully added to model {model_path.split(os.path.sep)[-1]}.')
+    model_index_path = './models/embeddings/actor_faces/embeddings_metadata.json'
+
+    logger.debug(f'Adding recognizer path to model {model_name}.')
+    model_index = read_json_file(model_index_path,logger)
+    for models in model_index:
+        if models['model_name'] == model_name:
+            if 'recognizer_path' in models.keys():
+                models['recognizer_path'].append(recognizer_path)
+            else:
+                models['recognizer_path'] = [recognizer_path]
+            break
+
+    create_json_file(model_index,model_index_path,logger)
+    logger.debug(f'Recognizer path succesfully added to model {model_name}.')
+
     if close_logger:
         shutdown_logger(logger)
