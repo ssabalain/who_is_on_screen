@@ -1,7 +1,7 @@
 import os
 from ops_download_images import create_facial_dataset
 from ops_logger import create_logger, shutdown_logger
-from ops_face_detection import create_embeddings_model
+from ops_face_detection import get_actors_embeddings
 from setup_director_database import create_director_database
 
 def download_facial_dataset():
@@ -15,10 +15,10 @@ def download_facial_dataset():
     shutdown_logger(logger)
 
 def create_embeddings_model():
-    logger = create_logger(script_name = os.path.basename(__name__))
+    logger = create_logger(script_name = os.path.basename(__name__), log_level = 'DEBUG')
     dataset_folder = './datasets/actor_faces/'
-    embeddings_index_file = './models/embeddings/actor_faces/embeddings_metadata.json'
-    create_embeddings_model(dataset_folder,embeddings_index_file,logger = logger)
+    models_folder = './models/embeddings/actor_faces'
+    get_actors_embeddings(dataset_folder,save_to_pickle=True,output_folder=models_folder,logger = logger)
     shutdown_logger(logger)
 
 def main():
