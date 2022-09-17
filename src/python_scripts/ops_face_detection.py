@@ -12,8 +12,9 @@ from time import time, strftime, localtime, gmtime
 from datetime import datetime
 import imghdr
 import uuid
+import random
 
-from ops_logger import create_logger, shutdown_logger
+from ops_logger import Logger
 from ops_files_operations import add_dict_to_metadata_file, create_pickle_file
 
 #Set 'src' folder as the working directory
@@ -24,27 +25,69 @@ os.chdir(os.path.sep.join(path_arr[:path_arr.index('src')+1]))
 def path_index(image_path):
     return int(image_path.split(os.path.sep)[-1].split('.')[0].split('_')[-1])
 
-def get_actors_dict(actor_faces_folder):
+def get_actors_dict(actor_faces_folder,test_sample=0,seed=0,logger=None):
+    if logger is None:
+        close_logger = True
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
+    else:
+        close_logger = False
+
     image_paths = list(paths.list_images(actor_faces_folder))
     actors_dict = {}
+    test_dict = {}
+    train_dict= {}
 
+    logger.debug(f'Building full actors dict from {actor_faces_folder} folder.')
     for (i, image_path) in enumerate(image_paths):
         actor_name = image_path.split(os.path.sep)[3]
 
         if actor_name not in actors_dict.keys():
+            logger.debug(f'Adding actor {actor_name} to dict.')
             actors_dict[actor_name] = []
 
+        logger.debug(f'Adding image {i} for actor {actor_name} on dict.')
         actors_dict[actor_name].append(image_path)
 
+    logger.debug(f'Sorting images alphabetically.')
     for actor, actors_images in actors_dict.items():
         actors_images.sort(key = path_index)
 
-    return(actors_dict)
+    logger.debug(f'Setting seed to {seed}.')
+    random.seed(seed)
 
-def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model=None,embedder=None,multiple_faces = False, min_confidence=0.9, display=False,logger = None):
+    logger.debug(f'Building train and test dicts. Test sample: {test_sample}.')
+    for actor in actors_dict:
+        logger.debug(f'Building train and test dicts for actor {actor}.')
+        total_actor_images = len(actors_dict[actor])
+        test_images_number = round(total_actor_images*test_sample)
+        logger.debug(f'Total actor images: {total_actor_images}. Test images number: {test_images_number}.')
+        random_test_index = []
+        for i in range(0,test_images_number):
+            test_index = random.randint(0,total_actor_images)
+            random_test_index.append(test_index)
+
+        test_dict[actor] = []
+        train_dict[actor] = []
+
+        for idx,image in enumerate(actors_dict[actor]):
+            if idx in random_test_index:
+                test_dict[actor].append(image)
+            else:
+                train_dict[actor].append(image)
+
+    if close_logger:
+        log.shutdown_logger()
+
+    return train_dict, test_dict
+
+def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model=None,embedder=None,multiple_faces=False, min_confidence=0.9, display=False,logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -69,7 +112,7 @@ def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model
         if provided_image is None:
             if img_path is None:
                 logger.error('No image provided.')
-                return
+                return None,None
             else:
                 admited_file_types = ['jpeg','png','webp',None]
                 file_format = imghdr.what(img_path)
@@ -161,19 +204,21 @@ def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model
 
     finally:
         if close_logger:
-            shutdown_logger(logger)
+            log.shutdown_logger()
 
-def get_actors_embeddings(actor_faces_folder,save_to_pickle=False,output_folder=None,images_per_actor=None, logger=None):
+def get_actors_embeddings(actor_faces_folder,test_sample=0,seed=0,save_to_pickle=False,output_folder=None,images_per_actor=None,logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
     try:
         process_start = time()
-        actors_dict = get_actors_dict(actor_faces_folder)
-        logger.info(f'Totals actors retrieved: {len(actors_dict)}.')
+        actors_dict,test_dict = get_actors_dict(actor_faces_folder,test_sample,seed,logger=logger)
+        logger.debug(f'Totals actors retrieved: {len(actors_dict)}.')
 
         actors_names = []
         actors_embeddings = []
@@ -196,7 +241,7 @@ def get_actors_embeddings(actor_faces_folder,save_to_pickle=False,output_folder=
             if images_per_actor is None:
                 images_per_actor = len(actors_images)
 
-            logger.info(f'Analyzing actor {actor}. Total images available: {len(actors_images)}. Images to process: {images_per_actor}')
+            logger.debug(f'Analyzing actor {actor}. Total images available: {len(actors_images)}. Images to process: {images_per_actor}')
 
             for (i, img_path) in enumerate(actors_images):
                 if i + 1 > images_per_actor:
@@ -222,13 +267,13 @@ def get_actors_embeddings(actor_faces_folder,save_to_pickle=False,output_folder=
 
             actor_info["total_images"] = str(processed_images)
             metadata_dict["actors"].append(actor_info)
-            logger.info(f'{processed_images}/{images_per_actor} images for actor {actor} were processed.')
+            logger.debug(f'{processed_images}/{images_per_actor} images for actor {actor} were processed.')
             images_per_actor = None
 
         emb_dict = {"embeddings": actors_embeddings, "names": actors_names}
         process_end = time()
         process_time = str(process_end - process_start)
-        logger.info(f'Embedding extraction finished. Exec time: {process_time}.')
+        logger.debug(f'Embedding extraction finished. Exec time: {process_time}.')
         metadata_dict["process_time"] = str(process_time)
 
         if save_to_pickle is True:
@@ -247,12 +292,14 @@ def get_actors_embeddings(actor_faces_folder,save_to_pickle=False,output_folder=
 
     finally:
         if close_logger:
-            shutdown_logger(logger)
+            log.shutdown_logger()
 
 def process_video(video_path,desired_fps=1, starting_frame=0, ending_frame=None, logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -309,7 +356,7 @@ def process_video(video_path,desired_fps=1, starting_frame=0, ending_frame=None,
     cv2.destroyAllWindows()
 
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()
 
     metadata_dict = {
         "starting_frame": str(starting_frame),
@@ -325,57 +372,61 @@ def process_video(video_path,desired_fps=1, starting_frame=0, ending_frame=None,
 def get_video_embeddings(video_path, results_path, partitions=1, desired_fps=1,logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
-    process_start = time()
     try:
-        cap = cv2.VideoCapture(video_path)
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        video_fps = cap.get(cv2.CAP_PROP_FPS)
-        cap.release()
-        cv2.destroyAllWindows()
-    except ValueError as err:
-        logger.error(err)
-        return
+        process_start = time()
+        try:
+            cap = cv2.VideoCapture(video_path)
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            video_fps = cap.get(cv2.CAP_PROP_FPS)
+            cap.release()
+            cv2.destroyAllWindows()
+        except ValueError as err:
+            logger.error(err)
+            return
 
-    chunks = []
-    chunk_size = round(total_frames/partitions)
-    for i in range(partitions):
-        starting_frame = i*chunk_size
-        ending_frame = (starting_frame + chunk_size) - 1
-        if ending_frame > total_frames or partitions == 1:
-            ending_frame = total_frames
-        chunk = [starting_frame,ending_frame]
-        chunks.append(chunk)
+        chunks = []
+        chunk_size = round(total_frames/partitions)
+        for i in range(partitions):
+            starting_frame = i*chunk_size
+            ending_frame = (starting_frame + chunk_size) - 1
+            if ending_frame > total_frames or partitions == 1:
+                ending_frame = total_frames
+            chunk = [starting_frame,ending_frame]
+            chunks.append(chunk)
 
-    video_name = video_path.split(os.path.sep)[-1].split('.')[0]
-    execution_metadata = {
-        "processed_video_id": str(uuid.uuid4()),
-        "execution_timestamp": strftime('%Y-%m-%d %H:%M:%S', localtime(process_start)),
-        "video_path": video_path,
-        "total_frames": str(total_frames),
-        "video_fps": str(video_fps),
-        "desired_fps": str(desired_fps),
-        "partitions": str(partitions),
-        "chunks": []
-    }
+        video_name = video_path.split(os.path.sep)[-1].split('.')[0]
+        execution_metadata = {
+            "processed_video_id": str(uuid.uuid4()),
+            "execution_timestamp": strftime('%Y-%m-%d %H:%M:%S', localtime(process_start)),
+            "video_path": video_path,
+            "total_frames": str(total_frames),
+            "video_fps": str(video_fps),
+            "desired_fps": str(desired_fps),
+            "partitions": str(partitions),
+            "chunks": []
+        }
 
-    for idx, chunk in enumerate(chunks):
-        results, chunk_metadata = process_video(video_path,desired_fps = desired_fps, starting_frame = chunk[0], ending_frame = chunk[1], logger = logger)
-        chunk_name = video_name + '_' + str(idx+1)
-        results_file = os.path.join(results_path,video_name,execution_metadata["processed_video_id"],chunk_name + '.pickle')
-        create_pickle_file(results,results_file,logger = logger)
-        chunk_metadata.update({"chunk": str(idx+1),"chunk_file": results_file})
-        execution_metadata['chunks'].append(chunk_metadata)
+        for idx, chunk in enumerate(chunks):
+            results, chunk_metadata = process_video(video_path,desired_fps=desired_fps, starting_frame=chunk[0], ending_frame=chunk[1], logger=logger)
+            chunk_name = video_name + '_' + str(idx+1)
+            results_file = os.path.join(results_path,video_name,execution_metadata["processed_video_id"],chunk_name + '.pickle')
+            create_pickle_file(results,results_file,logger = logger)
+            chunk_metadata.update({"chunk": str(idx+1),"chunk_file": results_file})
+            execution_metadata['chunks'].append(chunk_metadata)
 
-    results_file = os.path.join(results_path,video_name,'processed_videos_metadata.json')
-    add_dict_to_metadata_file(results_file, execution_metadata, logger = logger)
+        results_file = os.path.join(results_path,video_name,'processed_videos_metadata.json')
+        add_dict_to_metadata_file(results_file, execution_metadata, logger = logger)
 
-    process_end = time()
-    process_time = str(process_end - process_start)
-    logger.info(f'Total execution time = {process_time} seconds.')
+        process_end = time()
+        process_time = str(process_end - process_start)
+        logger.info(f'Total execution time = {process_time} seconds.')
 
-    if close_logger:
-        shutdown_logger(logger)
+    finally:
+        if close_logger:
+            log.shutdown_logger()
