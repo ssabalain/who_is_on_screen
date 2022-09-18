@@ -9,7 +9,7 @@ import gc
 import pickle
 import json
 
-from ops_logger import create_logger,shutdown_logger
+from ops_logger import Logger
 
 def download_file_from_url(url,folder_path):
     #Downloading the file into datasets folder
@@ -32,10 +32,12 @@ def download_datasets(folder_path,url):
     else:
         print("File " + filename + " already in filesystem.")
 
-def create_pickle_file(data_dict,path,logger = None):
+def create_pickle_file(data_dict,path,logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -50,12 +52,14 @@ def create_pickle_file(data_dict,path,logger = None):
     logger.debug(f'Pickle file created at {path}.')
 
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()
 
 def read_pickle_file(path,logger = None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -66,14 +70,16 @@ def read_pickle_file(path,logger = None):
     logger.debug(f'Pickle file read at {path}.')
 
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()
 
     return data_dict
 
 def create_json_file(data_dict,path,logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -88,12 +94,14 @@ def create_json_file(data_dict,path,logger=None):
     logger.debug(f'Json file created at {path}.')
 
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()
 
 def read_json_file(path,logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -104,14 +112,16 @@ def read_json_file(path,logger=None):
     logger.debug(f'Json file read at {path}.')
 
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()
 
     return data_dict
 
 def get_element_from_metadata(metadata_file_path,key=None,value=None,latest=False,logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__), level= 'DEBUG')
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -154,12 +164,14 @@ def get_element_from_metadata(metadata_file_path,key=None,value=None,latest=Fals
                     return
     finally:
         if close_logger:
-            shutdown_logger(logger)
+            log.shutdown_logger()
 
 def add_dict_to_metadata_file(path,dict,logger = None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -175,12 +187,14 @@ def add_dict_to_metadata_file(path,dict,logger = None):
     create_json_file(dict_array,path,logger)
 
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()
 
 def add_recognizer_path_to_model(recognizer_id,model_id,logger=None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -200,4 +214,4 @@ def add_recognizer_path_to_model(recognizer_id,model_id,logger=None):
     logger.debug(f'Recognizer path succesfully added to model {model_id}.')
 
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()
