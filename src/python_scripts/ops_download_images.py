@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from ops_database_operations import return_array_from_query
-from ops_logger import create_logger, shutdown_logger
+from ops_logger import Logger
 
 root_facialdb_folder = '/opt/workspace/src/'
 os.chdir(root_facialdb_folder)
@@ -31,7 +31,9 @@ def download_image(url, folder, file_name, num):
 def get_images_on_folder(images_folder,search_query,file_name,dataset_size, logger = None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -131,12 +133,14 @@ def get_images_on_folder(images_folder,search_query,file_name,dataset_size, logg
         driver.quit()
 
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()
 
 def create_facial_dataset(movies, actors_per_movie, sql_dict, dataset_folder, images_by_actor,logger = None):
     if logger is None:
         close_logger = True
-        logger = create_logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
     else:
         close_logger = False
 
@@ -186,6 +190,6 @@ def create_facial_dataset(movies, actors_per_movie, sql_dict, dataset_folder, im
             logger.debug(f'Images already for actor {actor_name}')
             logger.debug(f'Now we download 3 images for actor {actor_name} in the movie {actor["original_title"]}')
             get_images_on_folder(actor_full_path, actor_movie_search_query, actor_movie_name, 3,logger=logger)
-    
+
     if close_logger:
-        shutdown_logger(logger)
+        log.shutdown_logger()

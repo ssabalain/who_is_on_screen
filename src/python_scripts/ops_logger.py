@@ -2,51 +2,59 @@ import logging
 import os
 from datetime import datetime
 
-def create_logger(logs_path = None,script_name = None,level='INFO'):
-    if logs_path is None:
-        logs_path = './models/logs'
+class Logger:
+    def __init__(self, logs_path='./models/logs', script_name=os.path.basename(__name__), level='INFO'):
+        self.logs_path = logs_path
+        self.script_name = script_name
+        self.level = level
 
-    if script_name is None:
-        script_name = os.path.basename(__name__)
+    def get_level(self):
+        lower_level = self.level.lower()
+        if lower_level.startswith('critical'):
+            l = logging.CRITICAL
+        elif lower_level.startswith('error'):
+            l = logging.ERROR
+        elif lower_level.startswith('warning'):
+            l = logging.WARNING
+        elif lower_level.startswith('info'):
+            l = logging.INFO
+        elif lower_level.startswith('debug'):
+            l = logging.DEBUG
+        else:
+            l = logging.INFO
 
-    if not os.path.exists(logs_path):
-        os.makedirs(logs_path)
+        return l
 
-    datetime_for_name = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
-    file_name = os.path.join(logs_path, f'{script_name}_{datetime_for_name}.log')
+    def create_logger(self):
+        if not os.path.exists(self.logs_path):
+            os.makedirs(self.logs_path)
 
-    global logger
-    logger = logging.getLogger(__name__)
+        datetime_for_name = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+        file_name = os.path.join(self.logs_path, f'{self.script_name}_{datetime_for_name}.log')
 
-    while len(logger.handlers) > 0:
-        h = logger.handlers[0]
-        logger.removeHandler(h)
+        self.logger = logging.getLogger(self.script_name)
 
-    if level.lower().startswith('critical'):
-        l = logging.CRITICAL
-    elif level.lower().startswith('error'):
-        l = logging.ERROR
-    elif level.lower().startswith('warning'):
-        l = logging.WARNING
-    elif level.lower().startswith('info'):
-        l = logging.INFO
-    elif level.lower().startswith('debug'):
-        l = logging.DEBUG
-    else:
-        l = logging.INFO
+        while len(self.logger.handlers) > 0:
+            h = self.logger.handlers[0]
+            self.logger.removeHandler(h)
 
-    formatter = logging.Formatter('%(asctime)s - %(funcName)s - %(levelname)s - %(message)s')
-    ch = logging.StreamHandler()
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    fh = logging.FileHandler(file_name)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    logger.setLevel(l)
-    logger.info('Log created properly.')
+        l = self.get_level()
 
-    return logger
+        formatter = logging.Formatter('%(asctime)s - %(funcName)s - %(levelname)s - %(message)s')
+        ch = logging.StreamHandler()
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+        fh = logging.FileHandler(file_name)
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
+        self.logger.setLevel(l)
+        self.logger.debug('Log created properly.')
 
-def shutdown_logger(logger):
-    logger.info('Logger shutdown.')
-    logging.shutdown()
+    def update_level(self, level):
+        self.level = level
+        l = self.get_level()
+        self.logger.setLevel(l)
+
+    def shutdown_logger(self):
+        self.logger.debug('Logger shutdown.')
+        logging.shutdown()
