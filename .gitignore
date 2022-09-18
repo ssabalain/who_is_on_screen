@@ -14,3 +14,4 @@ src/models/logs
 src/models/embeddings
 src/models/recognizers
 src/models/results
+src/models/pipelines
