@@ -126,7 +126,7 @@ def train_recognizer(embeddings_dict=None,embeddings_metadata=None,embeddings_fo
         if close_logger:
             log.shutdown_logger()
 
-def predict_probabilities(target_embeddings,recognizer_folder=None,recognizer=None,recognizer_metadata=None,array_format=False, model_id=None,logger=None):
+def predict_probabilities(target_embeddings,recognizer_folder=None,recognizer=None,recognizer_metadata=None,array_format=False,recognizer_id=None,logger=None):
     if logger is None:
         close_logger = True
         log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
@@ -147,22 +147,22 @@ def predict_probabilities(target_embeddings,recognizer_folder=None,recognizer=No
             return None, None
 
         if recognizer_folder is not None:
-            model_index_path = './models/embeddings/actor_faces/models_metadata.json'
-            if model_id is None:
-                logger.debug(f'No model name provided. Using latest model.')
+            model_index_path = './models/recognizers/recognizer_metadata.json'
+            if recognizer_id is None:
+                logger.debug(f'No recognizer_id provided. Using latest model.')
                 model_dict = get_element_from_metadata(model_index_path, latest=True, logger=logger)
                 if model_dict is None:
                     logger.info(f'No model found, could not predict probabilities.')
                     return None, None
-                model_id = model_dict['model_id']
+                recognizer_id = model_dict['recognizer_id']
 
             recognizer_index_file = 'recognizer_metadata.json'
             recognizer_index_path = os.path.join(recognizer_folder,recognizer_index_file)
-            recognizer_metadata = get_element_from_metadata(recognizer_index_path,key='model_id',value=model_id,latest=True,logger=logger)
+            recognizer_metadata = get_element_from_metadata(recognizer_index_path,key='recognizer_id',value=recognizer_id,latest=True,logger=logger)
             recognizer_path = recognizer_metadata['pickle_path']
 
             if os.path.isfile(recognizer_path) is False:
-                logger.info(f'Recognizer for model {model_id} does not exists, can not predict probabilities.')
+                logger.info(f'Recognizer {recognizer_id} does not exists, can not predict probabilities.')
                 return None, None
 
             recognizer = read_pickle_file(recognizer_path, logger=logger)
@@ -170,13 +170,13 @@ def predict_probabilities(target_embeddings,recognizer_folder=None,recognizer=No
             if recognizer is None or recognizer_metadata is None:
                 logger.info(f'No recognizer provided, can not predict probabilities.')
                 return None, None
-            model_id = recognizer_metadata['model_id']
+            recognizer_id = recognizer_metadata['recognizer_id']
 
         predictions = recognizer['recognizer'].predict_proba(target_embeddings)[0]
         predictions_dict = dict(zip(recognizer['le'].classes_,predictions))
         sorted_predictions_dict = dict((x, y) for x, y in sorted(predictions_dict.items(), key=lambda x: x[1], reverse=True))
 
-        logger.debug(f'Probabilities predicted with model {model_id} for given embeddings.')
+        logger.debug(f'Probabilities predicted with recognizer {recognizer_id} for given embeddings.')
         if array_format:
             return np.array(list(sorted_predictions_dict.items())), recognizer_metadata['recognizer_id']
         else:
@@ -186,7 +186,7 @@ def predict_probabilities(target_embeddings,recognizer_folder=None,recognizer=No
         if close_logger:
             log.shutdown_logger()
 
-def get_probabilities_for_file(pickle_file_path, recognizer_folder=None,recognizer=None,recognizer_metadata=None, model_id=None, logger=None):
+def get_probabilities_for_file(pickle_file_path, recognizer_folder=None,recognizer=None,recognizer_metadata=None,recognizer_id=None,logger=None):
     if logger is None:
         close_logger = True
         log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
@@ -201,7 +201,7 @@ def get_probabilities_for_file(pickle_file_path, recognizer_folder=None,recogniz
     for frames in target_embeddings_array:
         frame_predictions = []
         for embedding in frames[2][0]:
-            prob_dict, recognizer_id = predict_probabilities([embedding],recognizer_folder,recognizer,recognizer_metadata, model_id=model_id, logger=logger)
+            prob_dict, recognizer_id = predict_probabilities([embedding],recognizer_folder,recognizer,recognizer_metadata,recognizer_id=recognizer_id,logger=logger)
             frame_predictions.append(prob_dict)
 
         frame_results = {
@@ -217,7 +217,7 @@ def get_probabilities_for_file(pickle_file_path, recognizer_folder=None,recogniz
 
     return file_probabilities, recognizer_id
 
-def get_probabilities_for_folder(folder_path, recognizer_folder,save_to_pickle=False,output_folder=None,processed_video_id=None, model_id=None, logger=None):
+def get_probabilities_for_folder(folder_path, recognizer_folder,save_to_pickle=False,output_folder=None,processed_video_id=None, recognizer_id=None, logger=None):
     if logger is None:
         close_logger = True
         log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
@@ -249,7 +249,7 @@ def get_probabilities_for_folder(folder_path, recognizer_folder,save_to_pickle=F
 
         for chunk in folders_dict["chunks"]:
             chunk_path = chunk["chunk_file"]
-            chunk_probabilities, recognizer_id = get_probabilities_for_file(chunk_path, recognizer_folder=recognizer_folder, model_id=model_id, logger=logger)
+            chunk_probabilities, recognizer_id = get_probabilities_for_file(chunk_path, recognizer_folder=recognizer_folder, recognizer_id=recognizer_id, logger=logger)
             chunk_dict = {
                 "chunk_no": chunk["chunk"],
                 "probabilities": chunk_probabilities
