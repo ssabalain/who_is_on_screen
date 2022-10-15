@@ -308,12 +308,17 @@ def get_pipeline_results(faces_folder,seed=None,test_sample=None,kernel=None,C=N
             "C": C,
             "gamma": gamma,
             "degree": degree,
+            "accuracy": 0,
+            "accuracy_top3": 0,
             "avg_accuracy": 0,
             "avg_accuracy_top3": 0,
             "results_dict": {}
         }
         accuracy_array = []
         top3_array = []
+        pipeline_total_images = 0
+        pipeline_total_hits = 0
+        pipeline_total_top3 = 0
 
         for actor in test_dict:
             logger.debug(f'Predicting probabilities for actor {actor}')
@@ -347,9 +352,15 @@ def get_pipeline_results(faces_folder,seed=None,test_sample=None,kernel=None,C=N
             pipeline_dict["results_dict"][actor]["accuracy_top3"] = total_top3/total_images
             accuracy_array.append(total_hits/total_images)
             top3_array.append(total_top3/total_images)
+            pipeline_total_images+=total_images
+            pipeline_total_hits+=total_hits
+            pipeline_total_top3+=total_top3
 
+        pipeline_dict["accuracy"] = pipeline_total_hits/pipeline_total_images
+        pipeline_dict["accuracy_top3"] = pipeline_total_top3/pipeline_total_images
         pipeline_dict["avg_accuracy"] = statistics.mean(accuracy_array)
         pipeline_dict["avg_accuracy_top3"] = statistics.mean(top3_array)
+        
         logger.debug(f'Pipeline results obtained. Average accuracy is {pipeline_dict["avg_accuracy"]}. Average top 3 accuracy is {pipeline_dict["avg_accuracy_top3"]}')
         return pipeline_dict
 
@@ -369,7 +380,7 @@ def train_pipelines(faces_folder,test_sample,kernels,C_values,gammas,degrees,ite
     try:
         process_start = time()
         pipelines = []
-        keys= ['parameters_uuid','seed','test_sample','C','gamma','degree','kernel','avg_accuracy','avg_accuracy_top3']
+        keys= ['parameters_uuid','seed','test_sample','C','gamma','degree','kernel','accuracy','accuracy_top3','avg_accuracy','avg_accuracy_top3']
 
         for kernel in kernels:
             logger.debug(f'Training pipelines for kernel = {kernel}')
