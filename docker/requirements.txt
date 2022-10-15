@@ -10,3 +10,4 @@ sklearn
 scikit-image
 requests
 bs4
+pandasql
