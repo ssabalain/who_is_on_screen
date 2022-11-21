@@ -15,3 +15,4 @@ src/models/embeddings
 src/models/recognizers
 src/models/results
 src/models/pipelines
+src/models/timelines
