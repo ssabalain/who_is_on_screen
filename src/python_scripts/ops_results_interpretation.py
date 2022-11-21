@@ -67,7 +67,7 @@ def get_actors_probs_query(actor_name, filtering_statement = True, logger=None):
         if close_logger:
             log.shutdown_logger()
 
-def get_predicted_timeline(results_id,avoid_nulls = True, only_boundaries = True, logger=None):
+def get_predicted_timeline(results_id,processed_videos_metadata_path,avoid_nulls = True, only_boundaries = True, logger=None):
     if logger is None:
         close_logger = True
         log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
@@ -81,8 +81,11 @@ def get_predicted_timeline(results_id,avoid_nulls = True, only_boundaries = True
             logger.debug('No results id passed.')
             return None
 
+        if processed_videos_metadata_path is None:
+            logger.debug('No processed video metadata path passed.')
+            return None
+
         results_metadata_path = './models/results/probabilities_metadata.json'
-        processed_videos_metadata_path = './models/embeddings/processed_videos/the_final_kick/processed_videos_metadata.json'
 
         results_metadata = get_element_from_metadata(
             metadata_file_path=results_metadata_path,
@@ -139,7 +142,7 @@ def get_predicted_timeline(results_id,avoid_nulls = True, only_boundaries = True
         if close_logger:
             log.shutdown_logger()
 
-def get_summarized_timeline(results_id,logger=None):
+def get_summarized_timeline(results_id,processed_videos_metadata_path,logger=None):
     if logger is None:
         close_logger = True
         log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
@@ -150,8 +153,8 @@ def get_summarized_timeline(results_id,logger=None):
 
     try:
         logger.debug('Getting the two timelines.')
-        full_timeline = get_predicted_timeline(results_id, avoid_nulls = False, only_boundaries = False, logger=logger)
-        short_timeline = get_predicted_timeline(results_id, logger=logger)
+        full_timeline = get_predicted_timeline(results_id, processed_videos_metadata_path, avoid_nulls = False, only_boundaries = False, logger=logger)
+        short_timeline = get_predicted_timeline(results_id, processed_videos_metadata_path, logger=logger)
 
         fd = open('./python_scripts/support_files/summarized_probs_query.sql', 'r')
         summarized_query = fd.read()

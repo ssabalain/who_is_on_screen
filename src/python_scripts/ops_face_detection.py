@@ -82,7 +82,7 @@ def get_actors_dict(actor_faces_folder,test_sample=0,seed=0,logger=None):
 
     return train_dict, test_dict
 
-def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model=None,embedder=None,multiple_faces=False, min_confidence=0.9, display=False,logger=None):
+def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model=None,embedder=None,multiple_faces=False, min_confidence=0.9, display=False,display_title='Output',logger=None):
     if logger is None:
         close_logger = True
         log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
@@ -190,7 +190,7 @@ def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model
         if display:
             plt.figure(figsize=[20,20])
             plt.subplot(121);plt.imshow(image[:,:,::-1]);plt.title("Original Image");plt.axis('off');
-            plt.subplot(122);plt.imshow(output_image[:,:,::-1]);plt.title("Output");plt.axis('off');
+            plt.subplot(122);plt.imshow(output_image[:,:,::-1]);plt.title(display_title);plt.axis('off');
 
         embeddings_metadata = {
             "img_path": img_path,
