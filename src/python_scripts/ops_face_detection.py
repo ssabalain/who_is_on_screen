@@ -82,7 +82,7 @@ def get_actors_dict(actor_faces_folder,test_sample=0,seed=0,logger=None):
 
     return train_dict, test_dict
 
-def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model=None,embedder=None,multiple_faces=False, min_confidence=0.9, display=False,logger=None):
+def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model=None,embedder=None,multiple_faces=False, min_confidence=0.9, display=False,display_title='Output',logger=None):
     if logger is None:
         close_logger = True
         log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
@@ -190,7 +190,7 @@ def get_embeddings_from_image(img_path=None,provided_image=None,opencv_dnn_model
         if display:
             plt.figure(figsize=[20,20])
             plt.subplot(121);plt.imshow(image[:,:,::-1]);plt.title("Original Image");plt.axis('off');
-            plt.subplot(122);plt.imshow(output_image[:,:,::-1]);plt.title("Output");plt.axis('off');
+            plt.subplot(122);plt.imshow(output_image[:,:,::-1]);plt.title(display_title);plt.axis('off');
 
         embeddings_metadata = {
             "img_path": img_path,
@@ -426,6 +426,50 @@ def get_video_embeddings(video_path, results_path, partitions=1, desired_fps=1,l
         process_end = time()
         process_time = str(process_end - process_start)
         logger.info(f'Total execution time = {process_time} seconds.')
+
+    finally:
+        if close_logger:
+            log.shutdown_logger()
+
+def get_frame_from_video(video_path,frame_number=None,timestamp=None,logger=None):
+    if logger is None:
+        close_logger = True
+        log = Logger(script_name = 'autolog_' + os.path.basename(__name__))
+        log.create_logger()
+        logger = log.logger
+    else:
+        close_logger = False
+
+    try:
+        try:
+            cap = cv2.VideoCapture(video_path)
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            video_fps = cap.get(cv2.CAP_PROP_FPS)
+        except ValueError as err:
+            logger.error(err)
+            return
+
+        try:
+            if frame_number is None:
+                if timestamp is None:
+                    logger.error('No frame number or timestamp provided.')
+                    return
+                else:
+                    time_array = [float(i) for i in timestamp.split(':')]
+                    frame_number = int(round((time_array[2] + time_array[1]*60 + time_array[0]*60*60)*video_fps,0))
+
+            if frame_number > total_frames:
+                logger.error('Frame number exceeds total number of frames in video.')
+                return
+
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number-1)
+            res, frame = cap.read()
+
+        finally:
+            cap.release()
+            cv2.destroyAllWindows()
+
+        return frame
 
     finally:
         if close_logger:
