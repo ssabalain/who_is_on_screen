@@ -103,7 +103,7 @@ In this phase, we will verify that it is possible to access the Spark cluster se
 services hosted in containers different from the Spark one. Achieving this presupposes overcoming a relatively complex
 technical barrier and completing the development ecosystem setup.
 
-#### Running Spark Applications from Airflow
+#### Running Spark Applications from Airflow
 
 To run a Spark Application from Airflow, it is first necessary to configure a "spark" type connection in the
 orchestration platform, pointing to the Spark cluster to be used.
